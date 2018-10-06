@@ -7,24 +7,38 @@
 
 
 #include <map>
+#include <list>
 #include "../utils.h"
 
 struct TableEntry {
     long id;
-    long start, endl;
+    long start, end;
     long pointer;
-    bool isValid;
+    std::string content;
+};
+
+class MvccDatabase{
+public:
+    int startPos(std::string key);
+    void insertStartPos(std::string key, int pos);
+    long newTableEntry(TableEntry tableEntry);
+    TableEntry getEntry(int pos);
+    void updateEntry(int pos, TableEntry tableEntry);
+
+private:
+    std::map<std::string, int> keyStartPos;
+    std::vector<TableEntry> table;
 };
 
 
-class Mvcc : public Server{
+class MvccServer : public Server{
 public:
-    Mvcc(){}
+    MvccServer(){};
     TransactionResult handle(Transaction transaction);
     void show();
 private:
     std::atomic<long> curTimeStamp;
-    std::map<std::string, std::vector<TableEntry>> database;
+    MvccDatabase database;
 };
 
 
