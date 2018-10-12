@@ -10,18 +10,36 @@
 #include <list>
 #include "../utils.h"
 
-class TimestampDatabase {
-    TimestampDatabase(){};
+const int TABLE_NUM = 2;
+
+struct TimestampEntry{
+    std::string key, value;
+    int lastRead, lastWrite;
 };
 
-class Timestamp : public Server {
+
+class TimestampDatabase {
+public:
+    static std::hash<std::string> chash;
+
+    TimestampDatabase();
+    TimestampEntry* get(std::string key);
+    void set(std::string key, TimestampEntry entry);
+    void show();
+private:
+    std::vector<std::vector<TimestampEntry>> tables;
+};
+
+int getCurrentTimeStamp();
+
+class TimestampServer : public Server {
 
 public:
-    Timestamp(){};
+    TimestampServer(){};
     TransactionResult handle(Transaction transaction);
     void show();
 private:
-    TimestampDatabase();
+    TimestampDatabase database;
 };
 
 

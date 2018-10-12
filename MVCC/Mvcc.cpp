@@ -7,8 +7,8 @@
 #include <bits/atomic_base.h>
 #include "Mvcc.h"
 
-void MvccDatabase::updateEntry(int pos, TableEntry tableEntry) {
-    table[pos] = tableEntry;
+void MvccDatabase::updateEntry(int pos, MvccTableEntry MvccTableEntry) {
+    table[pos] = MvccTableEntry;
 }
 
 void MvccDatabase::insertStartPos(std::string key, int pos) {
@@ -23,12 +23,12 @@ int MvccDatabase::startPos(std::string key) {
     }
 }
 
-long MvccDatabase::newTableEntry(TableEntry tableEntry) {
-    table.push_back(tableEntry);
+long MvccDatabase::newMvccTableEntry(MvccTableEntry MvccTableEntry) {
+    table.push_back(MvccTableEntry);
     return table.size();
 }
 
-TableEntry MvccDatabase::getEntry(int pos) {
+MvccTableEntry MvccDatabase::getEntry(int pos) {
     return table[pos];
 }
 
@@ -39,7 +39,7 @@ TransactionResult MvccServer::handle(Transaction transaction){
     do {
         oldValue = this->curTimeStamp.load(std::memory_order_relaxed);
         startStamp = oldValue + 1;
-    } while (std::atomic_compare_exchange_weak(&curTimeStamp, &oldValue, startStamp));
+    } while (!std::atomic_compare_exchange_weak(&curTimeStamp, &oldValue, startStamp));
 
     
     std::vector<long> lasterCheck;
@@ -47,34 +47,34 @@ TransactionResult MvccServer::handle(Transaction transaction){
         if (command.operation == WRITE) {
             int curPos = database.startPos(command.key);
             if(curPos == -1){
-                TableEntry *newEntry = new TableEntry{
+                MvccTableEntry *newEntry = new MvccTableEntry{
                         startStamp, startStamp, INT32_MAX, -1, command.value
                 };
-                int pos = database.newTableEntry(*newEntry);
+                int pos = database.newMvccTableEntry(*newEntry);
                 database.insertStartPos(command.key, pos);
             } else {
                 while (curPos != -1) {
-                    TableEntry tableEntry = database.getEntry(curPos);
-                    if (tableEntry.pointer == -1) {
-                        if (tableEntry.start == startStamp) {
-                            TableEntry *newEntry = new TableEntry{tableEntry.id, tableEntry.start,
-                                                                  tableEntry.end, tableEntry.pointer, command.value};
+                    MvccTableEntry mvccTableEntry = database.getEntry(curPos);
+                    if (mvccTableEntry.pointer == -1) {
+                        if (mvccTableEntry.start == startStamp) {
+                            MvccTableEntry *newEntry = new MvccTableEntry{mvccTableEntry.id, mvccTableEntry.start,
+                                                                  mvccTableEntry.end, mvccTableEntry.pointer, command.value};
                             database.updateEntry(curPos, *newEntry);
-                        } else if (tableEntry.start < startStamp && tableEntry.id == -1) {
-                            TableEntry *newEntry = new TableEntry{
+                        } else if (mvccTableEntry.start < startStamp && mvccTableEntry.id == -1) {
+                            MvccTableEntry *newEntry = new MvccTableEntry{
                                     startStamp, startStamp, INT32_MAX, -1, command.value
                             };
-                            int pos = database.newTableEntry(*newEntry);
-                            tableEntry.end = startStamp;
-                            tableEntry.pointer = pos;
-                            database.updateEntry(curPos, tableEntry);
+                            int pos = database.newMvccTableEntry(*newEntry);
+                            mvccTableEntry.end = startStamp;
+                            mvccTableEntry.pointer = pos;
+                            database.updateEntry(curPos, mvccTableEntry);
                         } else {
                             results.isSuccess = false;
                             return results;
                         }
                         break;
                     }
-                    curPos = tableEntry.pointer;
+                    curPos = mvccTableEntry.pointer;
                 }
             }
         }
@@ -83,15 +83,15 @@ TransactionResult MvccServer::handle(Transaction transaction){
             if(curPos == -1)results.results.push_back("NULL");
             else {
                 while (curPos != -1) {
-                    TableEntry tableEntry = database.getEntry(curPos);
-                    if (tableEntry.start <= startStamp && startStamp < tableEntry.end) {
-                        results.results.push_back(tableEntry.content);
-                        if (tableEntry.id != startStamp && tableEntry.id != -1) {
-                            lasterCheck.push_back(tableEntry.id);
+                    MvccTableEntry mvccTableEntry = database.getEntry(curPos);
+                    if (mvccTableEntry.start <= startStamp && startStamp < mvccTableEntry.end) {
+                        results.results.push_back(mvccTableEntry.content);
+                        if (mvccTableEntry.id != startStamp && mvccTableEntry.id != -1) {
+                            lasterCheck.push_back(mvccTableEntry.id);
                         }
                         break;
                     }
-                    curPos = tableEntry.pointer;
+                    curPos = mvccTableEntry.pointer;
                 }
             }
         }

@@ -123,33 +123,6 @@ rdma_measure/fast:
 	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/build
 .PHONY : rdma_measure/fast
 
-MVCC/Mvcc.o: MVCC/Mvcc.cpp.o
-
-.PHONY : MVCC/Mvcc.o
-
-# target to build an object file
-MVCC/Mvcc.cpp.o:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/MVCC/Mvcc.cpp.o
-.PHONY : MVCC/Mvcc.cpp.o
-
-MVCC/Mvcc.i: MVCC/Mvcc.cpp.i
-
-.PHONY : MVCC/Mvcc.i
-
-# target to preprocess a source file
-MVCC/Mvcc.cpp.i:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/MVCC/Mvcc.cpp.i
-.PHONY : MVCC/Mvcc.cpp.i
-
-MVCC/Mvcc.s: MVCC/Mvcc.cpp.s
-
-.PHONY : MVCC/Mvcc.s
-
-# target to generate assembly for a file
-MVCC/Mvcc.cpp.s:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/MVCC/Mvcc.cpp.s
-.PHONY : MVCC/Mvcc.cpp.s
-
 OCC/Occ.o: OCC/Occ.cpp.o
 
 .PHONY : OCC/Occ.o
@@ -267,9 +240,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... rdma_measure"
-	@echo "... MVCC/Mvcc.o"
-	@echo "... MVCC/Mvcc.i"
-	@echo "... MVCC/Mvcc.s"
 	@echo "... OCC/Occ.o"
 	@echo "... OCC/Occ.i"
 	@echo "... OCC/Occ.s"

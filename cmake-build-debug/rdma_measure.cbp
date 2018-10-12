@@ -84,12 +84,6 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/MVCC/Mvcc.cpp">
-			<Option target="rdma_measure"/>
-		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/MVCC/Mvcc.h">
-			<Option target="rdma_measure"/>
-		</Unit>
 		<Unit filename="/home/mason/CS/Code/rdma_measure/OCC/Occ.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>

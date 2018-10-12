@@ -24,7 +24,9 @@ TransactionResult OccServer::handle(Transaction transaction){
     for (Command command : transaction.commands) {
         if(command.operation == WRITE){
             tempDatabase[command.key] = command.value;
-        } else {
+            results.results.push_back(command.value);
+        }
+        if(command.operation == READ){
             if(tempDatabase.count(command.key) > 0) {
                 results.results.push_back(tempDatabase[command.key]);
             } else if(database.count(command.key) > 0) {
@@ -41,6 +43,7 @@ TransactionResult OccServer::handle(Transaction transaction){
         printf("%i size \n",  endtime.size());
         if(endtime[endtime.size() - 1] > start) {
             results.isSuccess = false;
+            results.results.clear();
             return results;
         }
     }

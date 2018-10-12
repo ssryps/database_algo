@@ -5,11 +5,17 @@ CMakeFiles/rdma_measure.dir/OCC/Occ.cpp.o: ../OCC/Occ.cpp
 CMakeFiles/rdma_measure.dir/OCC/Occ.cpp.o: ../OCC/Occ.h
 CMakeFiles/rdma_measure.dir/OCC/Occ.cpp.o: ../utils.h
 
+CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o: ../Timestamp/Timestamp.cpp
+CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o: ../Timestamp/Timestamp.h
+CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o: ../utils.h
+
 CMakeFiles/rdma_measure.dir/Twopl/Twopl.cpp.o: ../Twopl/Twopl.cpp
 CMakeFiles/rdma_measure.dir/Twopl/Twopl.cpp.o: ../Twopl/Twopl.h
 CMakeFiles/rdma_measure.dir/Twopl/Twopl.cpp.o: ../utils.h
 
+CMakeFiles/rdma_measure.dir/main.cpp.o: ../MVCC/Mvcc.h
 CMakeFiles/rdma_measure.dir/main.cpp.o: ../OCC/Occ.h
+CMakeFiles/rdma_measure.dir/main.cpp.o: ../Timestamp/Timestamp.h
 CMakeFiles/rdma_measure.dir/main.cpp.o: ../Twopl/Twopl.h
 CMakeFiles/rdma_measure.dir/main.cpp.o: ../main.cpp
 CMakeFiles/rdma_measure.dir/main.cpp.o: ../utils.h

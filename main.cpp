@@ -3,11 +3,13 @@
 #include "Twopl/Twopl.h"
 #include "pthread.h"
 #include "MVCC/Mvcc.h"
+#include "Timestamp/Timestamp.h"
 #include <cstdlib>
 
 Twopl* twoplServer;
 OccServer* occServer;
 MvccServer* mvccServer;
+TimestampServer* timestampServer;
 
 const int COMMMAND_PER_TRANSACTION = 2;
 const int KEY_RANGE = 5;
@@ -100,8 +102,47 @@ void OccTest(){
 
 }
 
+//
+//void* MvccClient(void* args){
+//    long index = (long)args;
+//    Transaction *transaction = new Transaction;
+//    std::string outputString;
+//    for(int i = 0; i < COMMMAND_PER_TRANSACTION; i ++){
+//        Command command = generateCommand();
+//        transaction->commands.push_back(command);
+//        char buffer[1024];
+//        sprintf(buffer, "%ld> %s: , key: %s, value: %s \n", index, (command.operation == WRITE? "WRITE": "READ"), command.key.c_str(), command.value.c_str());
+//        outputString += std::string(buffer);
+//    }
+//    printf("%s", outputString.c_str());
+//    outputString.clear();
+//    TransactionResult result = mvccServer->handle(*transaction);
+//    for(auto i : result.results){
+//        char buffer[1024];
+//        sprintf(buffer, "%s ", i.c_str());
+//        outputString += std::string(buffer);
+//    }
+//
+//    printf("%li result: %s \n", index, outputString.c_str());
+//}
+//
+//void MvccTest(){
+//    srand(time(NULL));
+//    const int thread_num = 4;
+//    mvccServer = new MvccServer;
+//    pthread_t* threads = new pthread_t[thread_num];
+//    for(long i = 0; i < thread_num; i++){
+//        pthread_create(&threads[i], NULL, MvccClient, (void*)i);
+//    }
+//    for(int i = 0; i < thread_num; i++){
+//        pthread_join(threads[i], NULL);
+//    }
+//    occServer->show();
+//
+//}
+//
 
-void* MvccClient(void* args){
+void* TimeStampClient(void* args){
     long index = (long)args;
     Transaction *transaction = new Transaction;
     std::string outputString;
@@ -114,7 +155,7 @@ void* MvccClient(void* args){
     }
     printf("%s", outputString.c_str());
     outputString.clear();
-    TransactionResult result = mvccServer->handle(*transaction);
+    TransactionResult result = timestampServer->handle(*transaction);
     for(auto i : result.results){
         char buffer[1024];
         sprintf(buffer, "%s ", i.c_str());
@@ -124,19 +165,18 @@ void* MvccClient(void* args){
     printf("%li result: %s \n", index, outputString.c_str());
 }
 
-void MvccTest(){
+void TimeStampTest(){
     srand(time(NULL));
     const int thread_num = 4;
-    mvccServer = new MvccServer;
+    timestampServer = new TimestampServer;
     pthread_t* threads = new pthread_t[thread_num];
     for(long i = 0; i < thread_num; i++){
-        pthread_create(&threads[i], NULL, MvccClient, (void*)i);
+        pthread_create(&threads[i], NULL, TimeStampClient, (void*)i);
     }
     for(int i = 0; i < thread_num; i++){
         pthread_join(threads[i], NULL);
     }
-    occServer->show();
-
+    timestampServer->show();
 }
 
 
@@ -144,7 +184,8 @@ void MvccTest(){
 int main() {
     //TwoplTest();
     //OccTest();
-    MvccTest();
+    //MvccTest();
+    TimeStampTest();
     return 0;
 }
 

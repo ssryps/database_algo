@@ -9,8 +9,9 @@
 #include <map>
 #include <list>
 #include "../utils.h"
+#include <atomic>
 
-struct TableEntry {
+struct MvccTableEntry {
     long id;
     long start, end;
     long pointer;
@@ -21,13 +22,13 @@ class MvccDatabase{
 public:
     int startPos(std::string key);
     void insertStartPos(std::string key, int pos);
-    long newTableEntry(TableEntry tableEntry);
-    TableEntry getEntry(int pos);
-    void updateEntry(int pos, TableEntry tableEntry);
+    long newMvccTableEntry(MvccTableEntry MvccTableEntry);
+    MvccTableEntry getEntry(int pos);
+    void updateEntry(int pos, MvccTableEntry MvccTableEntry);
 
 private:
     std::map<std::string, int> keyStartPos;
-    std::vector<TableEntry> table;
+    std::vector<MvccTableEntry> table;
 };
 
 
