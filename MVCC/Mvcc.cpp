@@ -74,9 +74,11 @@ TransactionResult MvccServer::handle(Transaction transaction){
                         }
                         break;
                     }
+                    curPos = tableEntry.pointer;
                 }
             }
-        } else {
+        }
+        if (command.operation == READ) {
             int curPos = database.startPos(command.key);
             if(curPos == -1)results.results.push_back("NULL");
             else {

@@ -177,6 +177,33 @@ OCC/Occ.cpp.s:
 	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/OCC/Occ.cpp.s
 .PHONY : OCC/Occ.cpp.s
 
+Timestamp/Timestamp.o: Timestamp/Timestamp.cpp.o
+
+.PHONY : Timestamp/Timestamp.o
+
+# target to build an object file
+Timestamp/Timestamp.cpp.o:
+	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o
+.PHONY : Timestamp/Timestamp.cpp.o
+
+Timestamp/Timestamp.i: Timestamp/Timestamp.cpp.i
+
+.PHONY : Timestamp/Timestamp.i
+
+# target to preprocess a source file
+Timestamp/Timestamp.cpp.i:
+	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.i
+.PHONY : Timestamp/Timestamp.cpp.i
+
+Timestamp/Timestamp.s: Timestamp/Timestamp.cpp.s
+
+.PHONY : Timestamp/Timestamp.s
+
+# target to generate assembly for a file
+Timestamp/Timestamp.cpp.s:
+	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.s
+.PHONY : Timestamp/Timestamp.cpp.s
+
 Twopl/Twopl.o: Twopl/Twopl.cpp.o
 
 .PHONY : Twopl/Twopl.o
@@ -246,6 +273,9 @@ help:
 	@echo "... OCC/Occ.o"
 	@echo "... OCC/Occ.i"
 	@echo "... OCC/Occ.s"
+	@echo "... Timestamp/Timestamp.o"
+	@echo "... Timestamp/Timestamp.i"
+	@echo "... Timestamp/Timestamp.s"
 	@echo "... Twopl/Twopl.o"
 	@echo "... Twopl/Twopl.i"
 	@echo "... Twopl/Twopl.s"
