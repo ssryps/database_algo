@@ -6,7 +6,7 @@
 #include "Timestamp/Timestamp.h"
 #include <cstdlib>
 
-Twopl* twoplServer;
+TwoplServer* twoplServer;
 OccServer* occServer;
 MvccServer* mvccServer;
 TimestampServer* timestampServer;
@@ -52,7 +52,7 @@ void* TwoplClient(void* args){
 void TwoplTest(){
     srand(time(NULL));
     const int thread_num = 4;
-    twoplServer = new Twopl;
+    twoplServer = new TwoplServer;
     pthread_t* threads = new pthread_t[thread_num];
     for(long i = 0; i < thread_num; i++){
         pthread_create(&threads[i], NULL, TwoplClient, (void*)i);

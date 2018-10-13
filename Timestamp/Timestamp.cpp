@@ -77,51 +77,76 @@ void TimestampServer::show() {
 
 
 
+// TimestampEntryBatch's implementation is as below.
+// This is just a naive one using a vector to store all information
+// further improvement such as binary tree is highly possible
+
+int TimestampEntryBatch::find(std::string key) {
+    for(int i = 0; i < table.size(); i++){
+        if(key == table[i].key)return i;
+    }
+    return -1;
+}
+
+TimestampEntry TimestampEntryBatch::get(int index) {
+    return table[index];
+}
+
+void TimestampEntryBatch::insert(std::string key, TimestampEntry entry) {
+    int index = find(key);
+    if(index != -1)table[index] = entry;
+    else table.push_back(entry);
+}
+
+
+// Database manger, currently store all batches locally
+
 std::hash<std::string> TimestampDatabase::chash = std::hash<std::string>();
 
 TimestampDatabase::TimestampDatabase() {
-    tables = std::vector<std::vector<TimestampEntry>>(TABLE_NUM);
+    // just for local use
+    tables = std::vector<TimestampEntryBatch>(TIMESTAMP_TABLE_NUM);
+}
+
+TimestampEntryBatch TimestampDatabase::getEntryTableBatchByHash(size_t hash) {
+    return tables[hash % TIMESTAMP_TABLE_NUM];
+}
+
+void TimestampDatabase::updateEntryTableBatchByHash(size_t hash, TimestampEntryBatch batch) {
+    tables[hash % TIMESTAMP_TABLE_NUM] = batch;
 }
 
 void TimestampDatabase::set(std::string key, TimestampEntry entry) {
-    size_t t = chash(key) % TABLE_NUM;
-    TimestampEntryBatch table = getEntryTableBatchByHash(t);
-
-    TimestampEntry entry1 = table.find(key);
-    bool in = false;
-    for(int i = 0; i < table.size(); i++){
-        if((*table)[i]key == key){
-            (*table)[i] = entry;
-            in = true;
-        }
-    }
-    if(!in)table->push_back(entry);
+    size_t t = chash(key);
+    TimestampEntryBatch batch = getEntryTableBatchByHash(t);
+    batch.insert(key, entry);
+    updateEntryTableBatchByHash(t, batch);
 }
 
 TimestampEntry* TimestampDatabase::get(std::string key) {
-    size_t t = chash(key.c_str()) % TABLE_NUM;
-    for(TimestampEntry entry: tables[t]){
-        if(entry.key == key){
-            TimestampEntry *result = new TimestampEntry(entry);
-            return result;
-        }
+    size_t t = chash(key.c_str());
+    TimestampEntryBatch table = getEntryTableBatchByHash(t);
+    int index = table.find(key);
+    if(index != -1) {
+        TimestampEntry *result = new TimestampEntry(table.get(index));
+        return result;
     }
     return NULL;
 }
 
 void TimestampDatabase::show() {
     std::cout << "\nPRINT DATABASE\n";
-    for(auto table: tables){
-        if(table.size() > 0)std::cout << "new table \n";
-        for(auto entry: table){
-            std::cout << entry.key << " : " << entry.value << " last read : " << entry.lastRead
-                        << " write : " << entry.lastWrite << std::endl;
-        }
-    }
+//    for(auto table: tables){
+//        if(table.size() > 0)std::cout << "new table \n";
+//        for(auto entry: table){
+//            std::cout << entry.key << " : " << entry.value << " last read : " << entry.lastRead
+//                        << " write : " << entry.lastWrite << std::endl;
+//        }
+//    }
 
 }
 
-std::atomic<int> cur(0);
+static std::atomic<int> cur(0);
 int getCurrentTimeStamp(){
     int oldValue, newValue;
     do {

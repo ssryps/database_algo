@@ -6,13 +6,13 @@
 #include "rdma_utils.h"
 
 
-void handleTransaction(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *txcq, char *txbuf, size_t txbufsize, Twopl* twoplServer, Transaction transaction){
+void handleTransaction(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *txcq, char *txbuf, size_t txbufsize, TwoplServer* twoplServer, Transaction transaction){
     TransactionResult result = twoplServer->handle(transaction);
     size_t t = putResultToBuffer(result, txbuf);
     ibPostSendAndWait(qp, mr, txbuf, t, txcq);
 }
 
-static void TwoplClient(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *rxcq, char *rxbuf, size_t rxbufsize, struct ibv_cq *txcq, char *txbuf, size_t txbufsize)
+static void RdmaTwoplClient(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *rxcq, char *rxbuf, size_t rxbufsize, struct ibv_cq *txcq, char *txbuf, size_t txbufsize)
 {
     Transaction *transaction = new Transaction;
     std::string outputString;
@@ -45,9 +45,9 @@ static void TwoplClient(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *rxc
 
 
 
-static void TwoplServer(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *rxcq, char *rxbuf, size_t rxbufsize, struct ibv_cq *txcq, char *txbuf, size_t txbufsize)
+static void RdmaTwoplServer(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *rxcq, char *rxbuf, size_t rxbufsize, struct ibv_cq *txcq, char *txbuf, size_t txbufsize)
 {
-    Twopl* twoplServer = new Twopl;
+    TwoplServer *twoplServer = new TwoplServer;
 
     while (1) {
         // receive first
@@ -70,5 +70,5 @@ static void TwoplServer(struct ibv_qp *qp, struct ibv_mr *mr, struct ibv_cq *rxc
 }
 
 void RdmaTwoplTest(int argv, char* args[]){
-    rdma_test(argv, args, TwoplServer, TwoplClient);
+    rdma_test(argv, args, RdmaTwoplServer, RdmaTwoplClient);
 }

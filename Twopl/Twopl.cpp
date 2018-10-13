@@ -4,62 +4,105 @@
 
 #include "Twopl.h"
 
+TwoplEntry TwoplEntryBatch::get(int index) {
+    return table[index];
+}
 
+int TwoplEntryBatch::find(std::string key) {
+    for(int i = 0; i < table.size(); i++){
+        if(table[i].key == key)return i;
+    }
+    return -1;
+}
 
-void TwoplDatabase::show() {
-    printf("database: **********\n");
-    for(auto table : tables){
-        for(TwoplEntry entry: table){
-            printf("%s: %s\n", entry.key.c_str(), entry.value.c_str());
-        }
+void TwoplEntryBatch::insert(std::string key, TwoplEntry entry) {
+    int index = find(key);
+    if(index != -1){
+        table[index] = entry;
+    } else {
+        table.push_back(entry);
     }
 }
 
-void TwoplDatabase::insert(std::string key, std::string value) {
+std::hash<std::string> TwoplDatabase::chash = std::hash<std::string>();
+
+void TwoplDatabase::show() {
+    printf("database: **********\n");
+//    for(auto table : tables){
+//        for(TwoplEntry entry: table){
+//            printf("%s: %s\n", entry.key.c_str(), entry.value.c_str());
+//        }
+//    }
+}
+
+void TwoplDatabase::insert(std::string key, TwoplEntry value) {
     size_t t = chash(key);
-    std::vector<TwoplEntry> table = getEntryTableByHash(t);
+    TwoplEntryBatch table = getEntryTableBatchByHash(t);
+    table.insert(key, value);
+    updateEntryTableBatchByHash(t, table);
 }
 
-std::vector<TwoplEntry> TwoplDatabase::getEntryTableByHash(size_t t) {
-    return tables[t % ]
+TwoplEntry* TwoplDatabase::get(std::string key) {
+    size_t t = chash(key);
+    TwoplEntryBatch table = getEntryTableBatchByHash(t);
+    int index = table.find(key);
+    if(index != -1) {
+        TwoplEntry *entry = new TwoplEntry(table.get(index));
+        return entry;
+    }
+    return NULL;
+}
+
+void TwoplDatabase::updateEntryTableBatchByHash(size_t hash, TwoplEntryBatch batch){
+    tables[hash % TWOPL_TABLE_NUM] = batch;
+}
+
+TwoplEntryBatch TwoplDatabase::getEntryTableBatchByHash(size_t hash) {
+    return tables[hash % TWOPL_TABLE_NUM];
 }
 
 
+
+// TwoplServer functions
 void TwoplServer::show() { database.show(); }
 
-void TwoplServer::insert(std::string key, std::string value) { database.insert(key, value); }
+void TwoplServer::insert(std::string key, TwoplEntry value) { database.insert(key, value); }
 
-std::string TwoplServer::get(std::string key) { return database.get(key); }
+TwoplEntry* TwoplServer::get(std::string key) { return database.get(key); }
 
 
 TransactionResult TwoplServer::handle(Transaction transaction) {
     TransactionResult results;
-    std::set<std::string> keys;
+    std::set<TwoplEntry*> keys;
     for (Command command : transaction.commands) {
-        if (this->database.count(command.key) > 0) {
-            keys.insert(command.key);
+        TwoplEntry *entry = database.get(command.key);
+        if(entry != NULL){
+            keys.insert(entry);
         } else {
-            keys.insert(command.key);
-            std::mutex *mu = new std::mutex;
-            this->mutexs.insert(std::pair<std::string, std::mutex*>(command.key, mu));
+            TwoplEntry* entry1 = new TwoplEntry{new std::mutex, command.key, "NULL"};
+            insert(command.key, *entry1);
+            keys.insert(entry1);
         }
     }
 
     for(auto i = keys.begin(); i != keys.end(); i++){
-        this->mutexs[*i]->lock();
+        (*i)->mu->lock();
     }
 
 
     for (Command command : transaction.commands) {
+        TwoplEntry *entry = get(command.key);
         if(command.operation == WRITE){
-            this->insert(command.key, command.value);
+            entry->value = command.value;
+            insert(command.key, *entry);
             results.results.push_back(command.value);
         } else{
-            results.results.push_back(this->get(command.key));
+            results.results.push_back(get(command.key)->value);
         }
     }
     for(Command command : transaction.commands){
-        this->mutexs[command.key]->unlock();
+        TwoplEntry *entry = get(command.key);
+        entry->mu->unlock();
     }
     results.isSuccess = true;
 

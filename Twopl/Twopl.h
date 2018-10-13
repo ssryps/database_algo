@@ -13,23 +13,33 @@
 #include "../utils.h"
 
 
-const static int TABLE_NUL = 10;
+static int TWOPL_TABLE_NUM = 10;
 struct TwoplEntry{
-    std::mutex mu;
+    std::mutex* mu;
     std::string key, value;
 };
 
+
+class TwoplEntryBatch {
+public:
+    TwoplEntry get(int index);
+    int find(std::string key);
+    void insert(std::string key, TwoplEntry entry);
+private:
+    std::vector<TwoplEntry> table;
+};
 
 class TwoplDatabase {
 public:
     static std::hash<std::string> chash;
     TwoplDatabase(){};
     void show();
-    void insert(std::string key, std::string value);
-    std::string get(std::string key);
+    void insert(std::string key, TwoplEntry entry);
+    TwoplEntry* get(std::string key);
 private:
-    std::vector<TwoplEntry>* getEntryTableByHash(size_t t);
-    std::vector<std::vector<TwoplEntry>> tables;
+    TwoplEntryBatch getEntryTableBatchByHash(size_t t);
+    void updateEntryTableBatchByHash(size_t t, TwoplEntryBatch batch);
+    std::vector<TwoplEntryBatch> tables;
 };
 
 
@@ -40,8 +50,8 @@ public:
     TransactionResult handle(Transaction transaction);
     void show();
 private:
-    void insert(std::string key, std::string value);
-    std::string get(std::string key);
+    void insert(std::string key, TwoplEntry value);
+    TwoplEntry* get(std::string key);
     TwoplDatabase database;
 }
 ;

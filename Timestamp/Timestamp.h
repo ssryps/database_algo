@@ -10,7 +10,7 @@
 #include <list>
 #include "../utils.h"
 
-const static int TABLE_NUM = 10;
+static int TIMESTAMP_TABLE_NUM = 10;
 
 struct TimestampEntry{
     std::string key, value;
@@ -19,8 +19,9 @@ struct TimestampEntry{
 
 class TimestampEntryBatch{
 public:
-    TimestampEntry find();
-    bool insert(std::string key, TimestampEntry entry);
+    TimestampEntry get(int index);
+    int find(std::string key);
+    void insert(std::string key, TimestampEntry entry);
 private:
     std::vector<TimestampEntry> table;
 };
@@ -35,9 +36,8 @@ public:
     void set(std::string key, TimestampEntry entry);
     void show();
 private:
-    TimestampEntryBatch getEntryTableBatchByHash(size_t t);
-    void setEntryTableBatchByHash(size_t t, TimestampEntryBatch);
-
+    TimestampEntryBatch getEntryTableBatchByHash(size_t hash);
+    void updateEntryTableBatchByHash(size_t hash, TimestampEntryBatch batch);
     // just for local test, this tables can be extended to multiple machine
     std::vector<TimestampEntryBatch> tables;
 };
