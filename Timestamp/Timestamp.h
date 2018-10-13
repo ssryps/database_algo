@@ -10,11 +10,19 @@
 #include <list>
 #include "../utils.h"
 
-const int TABLE_NUM = 2;
+const static int TABLE_NUM = 10;
 
 struct TimestampEntry{
     std::string key, value;
     int lastRead, lastWrite;
+};
+
+class TimestampEntryBatch{
+public:
+    TimestampEntry find();
+    bool insert(std::string key, TimestampEntry entry);
+private:
+    std::vector<TimestampEntry> table;
 };
 
 
@@ -27,7 +35,11 @@ public:
     void set(std::string key, TimestampEntry entry);
     void show();
 private:
-    std::vector<std::vector<TimestampEntry>> tables;
+    TimestampEntryBatch getEntryTableBatchByHash(size_t t);
+    void setEntryTableBatchByHash(size_t t, TimestampEntryBatch);
+
+    // just for local test, this tables can be extended to multiple machine
+    std::vector<TimestampEntryBatch> tables;
 };
 
 int getCurrentTimeStamp();

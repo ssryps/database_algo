@@ -3,29 +3,36 @@
 //
 
 #include "Twopl.h"
-#include <set>
 
-void Twopl::show() {
+
+
+void TwoplDatabase::show() {
     printf("database: **********\n");
-    for(auto i = database.begin(); i != database.end(); i++){
-        printf("%s: %s\n", (*i).first.c_str(), (*i).second.c_str());
+    for(auto table : tables){
+        for(TwoplEntry entry: table){
+            printf("%s: %s\n", entry.key.c_str(), entry.value.c_str());
+        }
     }
 }
 
-void Twopl::insert(std::string key, std::string value) {
-    this->database[key] = value;
+void TwoplDatabase::insert(std::string key, std::string value) {
+    size_t t = chash(key);
+    std::vector<TwoplEntry> table = getEntryTableByHash(t);
 }
 
-std::string Twopl::get(std::string key) {
-    if(this->database.count(key) > 0){
-        return this->database[key];
-    } else {
-        return "NULL";
-    }
-
+std::vector<TwoplEntry> TwoplDatabase::getEntryTableByHash(size_t t) {
+    return tables[t % ]
 }
 
-TransactionResult Twopl::handle(Transaction transaction) {
+
+void TwoplServer::show() { database.show(); }
+
+void TwoplServer::insert(std::string key, std::string value) { database.insert(key, value); }
+
+std::string TwoplServer::get(std::string key) { return database.get(key); }
+
+
+TransactionResult TwoplServer::handle(Transaction transaction) {
     TransactionResult results;
     std::set<std::string> keys;
     for (Command command : transaction.commands) {

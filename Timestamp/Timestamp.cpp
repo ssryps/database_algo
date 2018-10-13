@@ -85,14 +85,17 @@ TimestampDatabase::TimestampDatabase() {
 
 void TimestampDatabase::set(std::string key, TimestampEntry entry) {
     size_t t = chash(key) % TABLE_NUM;
+    TimestampEntryBatch table = getEntryTableBatchByHash(t);
+
+    TimestampEntry entry1 = table.find(key);
     bool in = false;
-    for(int i = 0; i < tables[t].size(); i++){
-        if(tables[t][i].key == key){
-            tables[t][i] = entry;
+    for(int i = 0; i < table.size(); i++){
+        if((*table)[i]key == key){
+            (*table)[i] = entry;
             in = true;
         }
     }
-    if(!in)tables[t].push_back(entry);
+    if(!in)table->push_back(entry);
 }
 
 TimestampEntry* TimestampDatabase::get(std::string key) {

@@ -8,19 +8,41 @@
 
 #include <map>
 #include <mutex>
+#include <set>
+#include <vector>
 #include "../utils.h"
 
-class Twopl : Server{
+
+const static int TABLE_NUL = 10;
+struct TwoplEntry{
+    std::mutex mu;
+    std::string key, value;
+};
+
+
+class TwoplDatabase {
+public:
+    static std::hash<std::string> chash;
+    TwoplDatabase(){};
+    void show();
+    void insert(std::string key, std::string value);
+    std::string get(std::string key);
+private:
+    std::vector<TwoplEntry>* getEntryTableByHash(size_t t);
+    std::vector<std::vector<TwoplEntry>> tables;
+};
+
+
+class TwoplServer : Server{
 
 public:
-    Twopl(){}
+    TwoplServer(){}
     TransactionResult handle(Transaction transaction);
     void show();
 private:
     void insert(std::string key, std::string value);
     std::string get(std::string key);
-    std::map<std::string, std::string> database;
-    std::map<std::string, std::mutex*> mutexs;
+    TwoplDatabase database;
 }
 ;
 
