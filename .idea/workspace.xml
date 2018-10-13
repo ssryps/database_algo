@@ -11,31 +11,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="77f9ff36-a707-4e8d-a3fb-4a46de1dfdac" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVCC/Mvcc.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/MVCC/Mvcc.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MVCC/Mvcc.h" beforeDir="false" afterPath="$PROJECT_DIR$/MVCC/Mvcc.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/OCC/Occ.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/OCC/Occ.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Timestamp/Timestamp.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Timestamp/Timestamp.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Timestamp/Timestamp.h" beforeDir="false" afterPath="$PROJECT_DIR$/Timestamp/Timestamp.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile2" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile2" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/progress.marks" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/progress.marks" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/CXX.includecache" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/CXX.includecache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/DependInfo.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/DependInfo.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/OCC/Occ.cpp.o" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/OCC/Occ.cpp.o" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/build.make" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/build.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/cmake_clean.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/cmake_clean.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/depend.internal" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/depend.internal" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/depend.make" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/depend.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/link.txt" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/link.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/main.cpp.o" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/progress.make" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rdma_measure.dir/progress.make" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/rdma_measure" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/rdma_measure.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/rdma_measure.cbp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-    </list>
+    <list default="true" id="77f9ff36-a707-4e8d-a3fb-4a46de1dfdac" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -265,7 +241,7 @@
       <workItem from="1538489927718" duration="1069000" />
       <workItem from="1538542282141" duration="15427000" />
       <workItem from="1539264776356" duration="2240000" />
-      <workItem from="1539329008344" duration="11521000" />
+      <workItem from="1539329008344" duration="11573000" />
     </task>
     <task id="LOCAL-00001" summary="add Timestamp">
       <created>1539329432502</created>
@@ -274,11 +250,18 @@
       <option name="project" value="LOCAL" />
       <updated>1539329432503</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="finish Timestamp, no bug by now">
+      <created>1539341745600</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1539341745600</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="56852000" />
+    <option name="totallyTimeSpent" value="56904000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="1920" y="-2" width="1920" height="1082" extended-state="6" />
@@ -290,9 +273,9 @@
       <window_info anchor="bottom" id="CMake" order="7" weight="0.3297062" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.50026387" side_tool="true" weight="0.40869564" />
       <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.5212314" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.5212314" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="7" weight="0.13551913" />
+      <window_info anchor="bottom" id="Terminal" order="7" weight="0.626327" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49973616" weight="0.40764332" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -332,7 +315,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="add Timestamp" />
-    <option name="LAST_COMMIT_MESSAGE" value="add Timestamp" />
+    <MESSAGE value="finish Timestamp, no bug by now" />
+    <option name="LAST_COMMIT_MESSAGE" value="finish Timestamp, no bug by now" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
