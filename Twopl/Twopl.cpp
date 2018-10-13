@@ -46,6 +46,7 @@ TransactionResult Twopl::handle(Transaction transaction) {
     for (Command command : transaction.commands) {
         if(command.operation == WRITE){
             this->insert(command.key, command.value);
+            results.results.push_back(command.value);
         } else{
             results.results.push_back(this->get(command.key));
         }

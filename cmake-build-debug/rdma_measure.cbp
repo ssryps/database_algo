@@ -108,13 +108,10 @@
 		<Unit filename="/home/mason/CS/Code/database_algo/pthread_local_test.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/database_algo/rdma_test/rdma_test.cpp">
+		<Unit filename="/home/mason/CS/Code/database_algo/rdma_test/rdma_twopl.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>
 		<Unit filename="/home/mason/CS/Code/database_algo/rdma_test/rdma_utils.h">
-			<Option target="rdma_measure"/>
-		</Unit>
-		<Unit filename="/home/mason/CS/Code/database_algo/rdma_test/twopl.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>
 		<Unit filename="/home/mason/CS/Code/database_algo/CMakeLists.txt">

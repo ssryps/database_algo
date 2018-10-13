@@ -4,8 +4,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o"
   "CMakeFiles/rdma_measure.dir/pthread_local_test.cpp.o"
   "CMakeFiles/rdma_measure.dir/main.cpp.o"
-  "CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o"
-  "CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o"
+  "CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o"
   "rdma_measure.pdb"
   "rdma_measure"
 )

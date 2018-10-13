@@ -16,7 +16,7 @@ const int KEY_RANGE = 5;
 const int VALUE_RANGE = 5;
 
 
-Command generateCommand(){
+static Command generateCommand(){
     Command command;
     Operation operation = (rand() % 2 == 0? WRITE: READ);
     std::string key = std::to_string(rand() % KEY_RANGE), value = std::to_string(rand() % VALUE_RANGE);

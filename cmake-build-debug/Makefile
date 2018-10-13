@@ -258,59 +258,32 @@ pthread_local_test.cpp.s:
 	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/pthread_local_test.cpp.s
 .PHONY : pthread_local_test.cpp.s
 
-rdma_test/rdma_test.o: rdma_test/rdma_test.cpp.o
+rdma_test/rdma_twopl.o: rdma_test/rdma_twopl.cpp.o
 
-.PHONY : rdma_test/rdma_test.o
-
-# target to build an object file
-rdma_test/rdma_test.cpp.o:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o
-.PHONY : rdma_test/rdma_test.cpp.o
-
-rdma_test/rdma_test.i: rdma_test/rdma_test.cpp.i
-
-.PHONY : rdma_test/rdma_test.i
-
-# target to preprocess a source file
-rdma_test/rdma_test.cpp.i:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.i
-.PHONY : rdma_test/rdma_test.cpp.i
-
-rdma_test/rdma_test.s: rdma_test/rdma_test.cpp.s
-
-.PHONY : rdma_test/rdma_test.s
-
-# target to generate assembly for a file
-rdma_test/rdma_test.cpp.s:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.s
-.PHONY : rdma_test/rdma_test.cpp.s
-
-rdma_test/twopl.o: rdma_test/twopl.cpp.o
-
-.PHONY : rdma_test/twopl.o
+.PHONY : rdma_test/rdma_twopl.o
 
 # target to build an object file
-rdma_test/twopl.cpp.o:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o
-.PHONY : rdma_test/twopl.cpp.o
+rdma_test/rdma_twopl.cpp.o:
+	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o
+.PHONY : rdma_test/rdma_twopl.cpp.o
 
-rdma_test/twopl.i: rdma_test/twopl.cpp.i
+rdma_test/rdma_twopl.i: rdma_test/rdma_twopl.cpp.i
 
-.PHONY : rdma_test/twopl.i
+.PHONY : rdma_test/rdma_twopl.i
 
 # target to preprocess a source file
-rdma_test/twopl.cpp.i:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.i
-.PHONY : rdma_test/twopl.cpp.i
+rdma_test/rdma_twopl.cpp.i:
+	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.i
+.PHONY : rdma_test/rdma_twopl.cpp.i
 
-rdma_test/twopl.s: rdma_test/twopl.cpp.s
+rdma_test/rdma_twopl.s: rdma_test/rdma_twopl.cpp.s
 
-.PHONY : rdma_test/twopl.s
+.PHONY : rdma_test/rdma_twopl.s
 
 # target to generate assembly for a file
-rdma_test/twopl.cpp.s:
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.s
-.PHONY : rdma_test/twopl.cpp.s
+rdma_test/rdma_twopl.cpp.s:
+	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.s
+.PHONY : rdma_test/rdma_twopl.cpp.s
 
 # Help Target
 help:
@@ -336,12 +309,9 @@ help:
 	@echo "... pthread_local_test.o"
 	@echo "... pthread_local_test.i"
 	@echo "... pthread_local_test.s"
-	@echo "... rdma_test/rdma_test.o"
-	@echo "... rdma_test/rdma_test.i"
-	@echo "... rdma_test/rdma_test.s"
-	@echo "... rdma_test/twopl.o"
-	@echo "... rdma_test/twopl.i"
-	@echo "... rdma_test/twopl.s"
+	@echo "... rdma_test/rdma_twopl.o"
+	@echo "... rdma_test/rdma_twopl.i"
+	@echo "... rdma_test/rdma_twopl.s"
 .PHONY : help
 
 

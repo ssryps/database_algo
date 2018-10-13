@@ -33,7 +33,7 @@ struct exchange_params {
 #define NUM_RTTS 1000000
 #define TICKS_PER_USEC 2400
 
-const int COMMMAND_PER_TRANSACTION = 2;
+const int COMMMAND_PER_TRANSACTION = 4;
 const int KEY_RANGE = 5;
 const int VALUE_RANGE = 5;
 
@@ -455,7 +455,8 @@ Transaction getTransactionFromBuffer(char* buf, size_t length){
     return *transaction;
 }
 
-char* putResultToBuffer(TransactionResult result, char* start){
+size_t putResultToBuffer(TransactionResult result, char* start){
+    char *init = start;
     for(auto command: result.results){
         for(int i = 0; i < command.size(); i++){
             *start = command[i];
@@ -464,19 +465,24 @@ char* putResultToBuffer(TransactionResult result, char* start){
         *start = '\n';
         start ++ ;
     }
-    return start;
+    return start - init;
 }
 
 TransactionResult getResultFromBuffer(char* buf, size_t length){
-    TransactionResult * result = new TransactionResult;
-    bool flag = true;
+    TransactionResult *result = new TransactionResult;
+    int len = 0;
+    char *startpos = buf;
     for(size_t i = 0; i < length; i++){
-        if(flag){
-            result->results.push_back(std::string(buf + i));
+        if(*(buf + i) == '\n'){
+            std::string *temp = new std::string(startpos, len);
+            result->results.push_back(*temp);
+            startpos = buf + i + 1;
+            len = 0;
+        } else {
+            len ++;
         }
-        if(*buf == '\n')flag = true;
     }
-
+    return *result;
 
 }
 

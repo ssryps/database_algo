@@ -177,52 +177,28 @@ CMakeFiles/rdma_measure.dir/main.cpp.o.provides: CMakeFiles/rdma_measure.dir/mai
 CMakeFiles/rdma_measure.dir/main.cpp.o.provides.build: CMakeFiles/rdma_measure.dir/main.cpp.o
 
 
-CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o: CMakeFiles/rdma_measure.dir/flags.make
-CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o: ../rdma_test/rdma_test.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mason/CS/Code/database_algo/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o -c /home/mason/CS/Code/database_algo/rdma_test/rdma_test.cpp
+CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o: CMakeFiles/rdma_measure.dir/flags.make
+CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o: ../rdma_test/rdma_twopl.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mason/CS/Code/database_algo/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o -c /home/mason/CS/Code/database_algo/rdma_test/rdma_twopl.cpp
 
-CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mason/CS/Code/database_algo/rdma_test/rdma_test.cpp > CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.i
+CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mason/CS/Code/database_algo/rdma_test/rdma_twopl.cpp > CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.i
 
-CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mason/CS/Code/database_algo/rdma_test/rdma_test.cpp -o CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.s
+CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mason/CS/Code/database_algo/rdma_test/rdma_twopl.cpp -o CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.s
 
-CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.requires:
+CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.requires:
 
-.PHONY : CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.requires
+.PHONY : CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.requires
 
-CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.provides: CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.requires
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.provides.build
-.PHONY : CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.provides
+CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.provides: CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.requires
+	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.provides.build
+.PHONY : CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.provides
 
-CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.provides.build: CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o
-
-
-CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o: CMakeFiles/rdma_measure.dir/flags.make
-CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o: ../rdma_test/twopl.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/mason/CS/Code/database_algo/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o -c /home/mason/CS/Code/database_algo/rdma_test/twopl.cpp
-
-CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/mason/CS/Code/database_algo/rdma_test/twopl.cpp > CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.i
-
-CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/mason/CS/Code/database_algo/rdma_test/twopl.cpp -o CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.s
-
-CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.requires:
-
-.PHONY : CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.requires
-
-CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.provides: CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.requires
-	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.provides.build
-.PHONY : CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.provides
-
-CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.provides.build: CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o
+CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.provides.build: CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o
 
 
 # Object files for target rdma_measure
@@ -232,8 +208,7 @@ rdma_measure_OBJECTS = \
 "CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o" \
 "CMakeFiles/rdma_measure.dir/pthread_local_test.cpp.o" \
 "CMakeFiles/rdma_measure.dir/main.cpp.o" \
-"CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o" \
-"CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o"
+"CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o"
 
 # External object files for target rdma_measure
 rdma_measure_EXTERNAL_OBJECTS =
@@ -243,11 +218,10 @@ rdma_measure: CMakeFiles/rdma_measure.dir/Twopl/Twopl.cpp.o
 rdma_measure: CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o
 rdma_measure: CMakeFiles/rdma_measure.dir/pthread_local_test.cpp.o
 rdma_measure: CMakeFiles/rdma_measure.dir/main.cpp.o
-rdma_measure: CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o
-rdma_measure: CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o
+rdma_measure: CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o
 rdma_measure: CMakeFiles/rdma_measure.dir/build.make
 rdma_measure: CMakeFiles/rdma_measure.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/mason/CS/Code/database_algo/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking CXX executable rdma_measure"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/mason/CS/Code/database_algo/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable rdma_measure"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/rdma_measure.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -260,8 +234,7 @@ CMakeFiles/rdma_measure.dir/requires: CMakeFiles/rdma_measure.dir/Twopl/Twopl.cp
 CMakeFiles/rdma_measure.dir/requires: CMakeFiles/rdma_measure.dir/Timestamp/Timestamp.cpp.o.requires
 CMakeFiles/rdma_measure.dir/requires: CMakeFiles/rdma_measure.dir/pthread_local_test.cpp.o.requires
 CMakeFiles/rdma_measure.dir/requires: CMakeFiles/rdma_measure.dir/main.cpp.o.requires
-CMakeFiles/rdma_measure.dir/requires: CMakeFiles/rdma_measure.dir/rdma_test/rdma_test.cpp.o.requires
-CMakeFiles/rdma_measure.dir/requires: CMakeFiles/rdma_measure.dir/rdma_test/twopl.cpp.o.requires
+CMakeFiles/rdma_measure.dir/requires: CMakeFiles/rdma_measure.dir/rdma_test/rdma_twopl.cpp.o.requires
 
 .PHONY : CMakeFiles/rdma_measure.dir/requires
 
