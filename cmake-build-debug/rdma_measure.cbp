@@ -8,38 +8,38 @@
 		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="/home/mason/CS/Code/rdma_measure/cmake-build-debug"/>
+				<Option working_dir="/home/mason/CS/Code/database_algo/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="/home/mason/CS/Code/rdma_measure/cmake-build-debug"/>
+				<Option working_dir="/home/mason/CS/Code/database_algo/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
-				<Option working_dir="/home/mason/CS/Code/rdma_measure/cmake-build-debug"/>
+				<Option working_dir="/home/mason/CS/Code/database_algo/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rdma_measure">
-				<Option output="/home/mason/CS/Code/rdma_measure/cmake-build-debug/rdma_measure" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/mason/CS/Code/rdma_measure/cmake-build-debug"/>
+				<Option output="/home/mason/CS/Code/database_algo/cmake-build-debug/rdma_measure" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/mason/CS/Code/database_algo/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -54,15 +54,15 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 rdma_measure"/>
-					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 rdma_measure"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rdma_measure/fast">
-				<Option output="/home/mason/CS/Code/rdma_measure/cmake-build-debug/rdma_measure" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/home/mason/CS/Code/rdma_measure/cmake-build-debug"/>
+				<Option output="/home/mason/CS/Code/database_algo/cmake-build-debug/rdma_measure" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/mason/CS/Code/database_algo/cmake-build-debug"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
@@ -77,35 +77,47 @@
 					<Add directory="/usr/include"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 rdma_measure/fast"/>
-					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/rdma_measure/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 rdma_measure/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/mason/CS/Code/database_algo/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/OCC/Occ.cpp">
+		<Unit filename="/home/mason/CS/Code/database_algo/OCC/Occ.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/OCC/Occ.h">
+		<Unit filename="/home/mason/CS/Code/database_algo/OCC/Occ.h">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/Timestamp/Timestamp.cpp">
+		<Unit filename="/home/mason/CS/Code/database_algo/Timestamp/Timestamp.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/Timestamp/Timestamp.h">
+		<Unit filename="/home/mason/CS/Code/database_algo/Timestamp/Timestamp.h">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/Twopl/Twopl.cpp">
+		<Unit filename="/home/mason/CS/Code/database_algo/Twopl/Twopl.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/Twopl/Twopl.h">
+		<Unit filename="/home/mason/CS/Code/database_algo/Twopl/Twopl.h">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/main.cpp">
+		<Unit filename="/home/mason/CS/Code/database_algo/main.cpp">
 			<Option target="rdma_measure"/>
 		</Unit>
-		<Unit filename="/home/mason/CS/Code/rdma_measure/CMakeLists.txt">
+		<Unit filename="/home/mason/CS/Code/database_algo/pthread_local_test.cpp">
+			<Option target="rdma_measure"/>
+		</Unit>
+		<Unit filename="/home/mason/CS/Code/database_algo/rdma_test/rdma_test.cpp">
+			<Option target="rdma_measure"/>
+		</Unit>
+		<Unit filename="/home/mason/CS/Code/database_algo/rdma_test/rdma_utils.h">
+			<Option target="rdma_measure"/>
+		</Unit>
+		<Unit filename="/home/mason/CS/Code/database_algo/rdma_test/twopl.cpp">
+			<Option target="rdma_measure"/>
+		</Unit>
+		<Unit filename="/home/mason/CS/Code/database_algo/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
 	</Project>
