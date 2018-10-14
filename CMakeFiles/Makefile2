@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = /home/stmatengss/Desktop/working/cc_rdma_bench/database_algo
 CMakeFiles/rdma_measure.dir/all:
 	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/depend
 	$(MAKE) -f CMakeFiles/rdma_measure.dir/build.make CMakeFiles/rdma_measure.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/stmatengss/Desktop/working/cc_rdma_bench/database_algo/CMakeFiles  1 2 3 4 5 6
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/stmatengss/Desktop/working/cc_rdma_bench/database_algo/CMakeFiles  1
 	@echo "Built target rdma_measure"
 .PHONY : CMakeFiles/rdma_measure.dir/all
 
@@ -69,7 +69,7 @@ all: CMakeFiles/rdma_measure.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/rdma_measure.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/stmatengss/Desktop/working/cc_rdma_bench/database_algo/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/stmatengss/Desktop/working/cc_rdma_bench/database_algo/CMakeFiles 1
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/rdma_measure.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/stmatengss/Desktop/working/cc_rdma_bench/database_algo/CMakeFiles 0
 .PHONY : CMakeFiles/rdma_measure.dir/rule
