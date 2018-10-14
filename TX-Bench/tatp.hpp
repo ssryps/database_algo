@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <unistd.h>
+#include "../Storage/index_hashtable.hpp"
 
 struct Subscriber{
 	long s_id;
@@ -15,55 +16,55 @@ struct Subscriber{
 };
 
 struct TatpBenchmark{
-	struct Hashtable<Subscriber> subscriber_table;
+	class HashTableIndex<Subscriber> subscriber_table;
 	long population;
 };
 
 #define PSIZE (1<<30)
 #define VSIZE (1<<30)
-
 #define POPULATION 100000
+
+#define TX_START(num) do{}while(0);
+#define TX_STORE(ptr, val) { \
+	*ptr = val;\
+}; 
+#define TX_COMMIT() do{}while(0);
 
 void tatpInit(struct TatpBenchmark* tatp, int population){
 	tatp->population = population;
 
-	tatp->subscriber_table = hash_table_init(1<<20);
+	tatp->subscriber_table = HashTableIndex();
+	tatp->subscriber_table.init();
 
-	struct Subscriber* sr = (struct Subscriber*) PMALLOC(population*sizeof(struct Subscriber));
+	struct Subscriber* sr = (struct Subscriber*) malloc(population*sizeof(struct Subscriber));
 	for(int i=0; i<population; i++){
-		TM_START(0);
-		TM_STORE(&sr[i].s_id, i);
-		TM_STORE(&sr[i].vlr_location, rand());
+		TX_START(0);
 
-		#if INDEX_TYPE == BPLUSTREE_INDEX
-		bplus_tree_put(tatp->subscriber_table, i, (long)&sr[i]);
-		#elif INDEX_TYPE == HASHTABLE_INDEX
-		hash_table_put(tatp->subscriber_table, i, (long)&sr[i]);
-		#endif
+		TX_STORE(&sr[i].s_id, i);
+		TX_STORE(&sr[i].vlr_location, rand());
+
+		// hash_table_put(tatp->subscriber_table, i, (long)&sr[i]);
+		tatp->subscriber_table.index_put(i, (long)&sr[i]);
 		
-		TM_COMMIT();
+		TX_COMMIT();
 	}
 }
 
 inline
 void updateLocation(struct TatpBenchmark* tatp, long s_id, long n_loc){
 
-	struct Subscriber* sr = (struct Subscriber*)
-#if INDEX_TYPE == BPLUSTREE_INDEX
-	bplus_tree_get(tatp->subscriber_table, s_id);
-#elif INDEX_TYPE == HASHTABLE_INDEX
-	hash_table_get(tatp->subscriber_table, s_id);
-#endif
+	struct Subscriber* sr;
+	tatp->subscriber_table.index_get(s_id, &sr);
 
 	assert(sr);
-	TM_STORE(&sr->vlr_location, n_loc);
+	TX_STORE(&sr->vlr_location, n_loc);
 }
 
 int main(int argc, char** argv){
 	global_init();
 
-	TM_INIT();
-	TM_INIT_THREAD();
+	TX_INIT();
+	TX_INIT_THREAD();
 
 	struct TatpBenchmark* tatp = new TatpBenchmark;
 	tatpInit(tatp, POPULATION);
@@ -78,7 +79,7 @@ int main(int argc, char** argv){
 		ops[i] = 0;
 		pid[i] = std::thread([&](int x){
 			dune_enter();
-			TM_INIT_THREAD();
+			TX_INIT_THREAD();
 			unsigned short seed[3];
 			seed[0] = rand();
 			seed[1] = rand();
@@ -87,13 +88,13 @@ int main(int argc, char** argv){
 			while(done == 0){
 				long s_id = (int)(erand48(seed)*tatp->population);
 				long n_loc = (int)(erand48(seed)*0x7fffffff);
-				TM_START(0);
+				TX_START(0);
 				updateLocation(tatp, s_id, n_loc);
-				TM_COMMIT();
+				TX_COMMIT();
 
 				ops[x]++;
 			}
-			TM_EXIT_THREAD();
+			TX_EXIT_THREAD();
 
 		}, i);
 	}
@@ -110,8 +111,8 @@ int main(int argc, char** argv){
 	double del = end - begin; 
 	printf("total time: %.4lf, throughput: %.4lf Mtps\n",del, (double)(total)/1000000/del);
 
-	TM_EXIT_THREAD();
-	TM_EXIT();
+	TX_EXIT_THREAD();
+	TX_EXIT();
 }
 
 

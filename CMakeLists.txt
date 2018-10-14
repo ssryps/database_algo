@@ -13,6 +13,7 @@ include_directories(
 	./Twopl
 	./OCC
 	./Timestamp
+	./Storage
 	./pthread_local_test.cpp
 	)
 
@@ -27,11 +28,5 @@ set(mylib
 	pthread)
 
 add_executable(rdma_measure main.cpp)
-    #     OCC/Occ.h OCC/Occ.cpp
-    #     Twopl/Twopl.h Twopl/Twopl.cpp
-    # #    MVCC/Mvcc.cpp MVCC/Mvcc.h
-    #     Timestamp/Timestamp.cpp Timestamp/Timestamp.h
-    #     pthread_local_test.cpp
-    #     rdma_test/rdma_twopl.cpp rdma_test/rdma_utils.h)
 
 TARGET_LINK_LIBRARIES(rdma_measure ${my_lib})

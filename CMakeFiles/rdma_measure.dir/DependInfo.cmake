@@ -19,6 +19,7 @@ set(CMAKE_C_TARGET_INCLUDE_PATH
   "./Twopl"
   "./OCC"
   "./Timestamp"
+  "./Storage"
   "./pthread_local_test.cpp"
   )
 set(CMAKE_CXX_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})

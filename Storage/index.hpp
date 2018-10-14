@@ -1,29 +1,35 @@
 #ifndef INDEX_HPP
 #define INDEX_HPP
 
-#include "utils.h"
-#include "defines.h"
+#include <iostream>
+#include <memory>
 
-class index_base {
+#include "../utils.h"
+#include "../defines.h"
+
+
+template<typename T>
+class Index {
 public:
-	virtual  			init() { return OK; };
-	virtual RC 			init(uint64_t size) { return OK; };
+	typedef std::shared_ptr<T> T_ptr;
+	virtual bool			init();
+	virtual bool 			init(uint64_t size);
 
-	virtual bool 		index_exist(idx_key_t key)=0; // check if the key exist.
+	virtual bool 			index_exist(idx_key_t key); // check if the key exist.
 
-	virtual RC 			index_put(idx_key_t key, 
-							itemid_t * item, 
-							int part_id=-1)=0;
+	virtual bool 			index_put(idx_key_t key, T_ptr item);
 
-	virtual RC	 		index_get(idx_key_t key, 
-							itemid_t * &item,
-							int part_id=-1)=0;
+	virtual bool 			index_put(idx_key_t key, T_ptr item, int part_id);
+
+	virtual bool	 		index_get(idx_key_t key, T_ptr &item);
+
+	virtual bool	 		index_get(idx_key_t key, T_ptr &item,int part_id);
 	
 	// TODO implement index_remove
-	virtual RC 			index_remove(idx_key_t key) { return OK; };
+	virtual bool 			index_remove(idx_key_t key);
 	
 	// the index in on "table". The key is the merged key of "fields"
-	table_t * 			table;
+	// table_t * 			table;
 };
 
 #endif // INDEX_HPP

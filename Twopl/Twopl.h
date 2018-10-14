@@ -10,6 +10,7 @@
 #include <mutex>
 #include <set>
 #include <vector>
+#include "index_hashtable.hpp"
 #include "../utils.h"
 
 
