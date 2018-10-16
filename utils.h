@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+enum RC {OK, ABORT, COMMIT, WAIT, ERROR};
+
 enum Operation {READ, WRITE};
 
 struct Command{
