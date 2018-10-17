@@ -1,4 +1,4 @@
-#include "rdma_test/rdma_twopl.cpp"
+#include "rdma_test/rdma_test.cpp"
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
