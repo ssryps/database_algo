@@ -1,3 +1,0 @@
-/home/mateng/my_project/database_algo/CMakeFiles/edit_cache.dir
-/home/mateng/my_project/database_algo/CMakeFiles/rebuild_cache.dir
-/home/mateng/my_project/database_algo/CMakeFiles/rdma_measure.dir

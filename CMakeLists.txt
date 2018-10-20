@@ -14,12 +14,8 @@ aux_source_directory(src DIR_SRCS)
 include_directories(
 	${HELLO_SOURCE_DIR}/. 
 	./rdma_test
-	./Twopl
-	./OCC
-	./Timestamp
-	./Storage
-	./Network
-	./pthread_local_test.cpp
+	./src
+	src/pthread_local_test.cpp
 	)
 
 link_directories (

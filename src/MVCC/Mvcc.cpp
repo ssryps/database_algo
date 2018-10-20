@@ -7,51 +7,62 @@
 #include <bits/atomic_base.h>
 #include "Mvcc.h"
 
-void MvccDatabase::updateEntry(int pos, MvccTableEntry MvccTableEntry) {
-    table[pos] = MvccTableEntry;
-}
+//MvccDatabase::MvccDatabase() {
+//    indexs.init();
+//}
+//
+//void MvccDatabase::updateEntry(int pos, MvccTableEntry MvccTableEntry) {
+//    indexs.index_put();
+//}
+//
+//void MvccDatabase::insertStartPos(std::string key, int pos) {
+//    keyStartPos[key] = pos;
+//}
+//
+//int MvccDatabase::startPos(std::string key) {
+//    if(keyStartPos.count(key) > 0){
+//        return keyStartPos[key];
+//    } else {
+//        return -1;
+//    }
+//}
+//
+//long MvccDatabase::newMvccTableEntry(MvccTableEntry MvccTableEntry) {
+//    table.push_back(MvccTableEntry);
+//    return table.size();
+//}
+//
+//MvccTableEntry MvccDatabase::getEntry(int pos) {
+//    return table[pos];
+//}
 
-void MvccDatabase::insertStartPos(std::string key, int pos) {
-    keyStartPos[key] = pos;
+static std::atomic<int> cur(0);
+int getCurrentTimeStamp(){
+    // this functions is currently local, and need to be extended to global time later
+    int oldValue, newValue;
+    do {
+        oldValue = cur.load(std::memory_order_relaxed);
+        newValue = oldValue + 1;
+    } while (!std::atomic_compare_exchange_weak(&cur, &oldValue, newValue));
+    return newValue;
 }
-
-int MvccDatabase::startPos(std::string key) {
-    if(keyStartPos.count(key) > 0){
-        return keyStartPos[key];
-    } else {
-        return -1;
-    }
-}
-
-long MvccDatabase::newMvccTableEntry(MvccTableEntry MvccTableEntry) {
-    table.push_back(MvccTableEntry);
-    return table.size();
-}
-
-MvccTableEntry MvccDatabase::getEntry(int pos) {
-    return table[pos];
-}
-
 
 TransactionResult MvccServer::handle(Transaction transaction){
     TransactionResult results;
-    long oldValue, startStamp;
-    do {
-        oldValue = this->curTimeStamp.load(std::memory_order_relaxed);
-        startStamp = oldValue + 1;
-    } while (!std::atomic_compare_exchange_weak(&curTimeStamp, &oldValue, startStamp));
 
+    int startStamp = getCurrentTimeStamp();
     
     std::vector<long> lasterCheck;
     for (Command command : transaction.commands) {
         if (command.operation == WRITE) {
-            int curPos = database.startPos(command.key);
-            if(curPos == -1){
+            idx_key_t curPos;
+            if(!database.key_index_start(command.key, curPos)){
                 MvccTableEntry *newEntry = new MvccTableEntry{
                         startStamp, startStamp, INT32_MAX, -1, command.value
                 };
-                int pos = database.newMvccTableEntry(*newEntry);
-                database.insertStartPos(command.key, pos);
+                idx_key_t pos;
+                database.new_index(newEntry, pos);
+                database.key_index_insert(command.key, pos);
             } else {
                 while (curPos != -1) {
                     MvccTableEntry mvccTableEntry = database.getEntry(curPos);
@@ -97,3 +108,4 @@ TransactionResult MvccServer::handle(Transaction transaction){
         }
     }
 }
+

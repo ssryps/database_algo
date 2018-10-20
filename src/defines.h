@@ -2,6 +2,8 @@
 #define DEFINES_H
 
 typedef uint64_t idx_key_t; // key id for index
+typedef uint64_t idx_value_t;
+
 
 enum Data_type {DT_table, DT_page, DT_row };
 
