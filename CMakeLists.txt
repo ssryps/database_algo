@@ -7,6 +7,9 @@ set (CMAKE_WARN_DEPRECATED 0)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib/)
 
+set(TEST1 rdma_lib_test)
+
+aux_source_directory(src DIR_SRCS)
 
 include_directories(
 	${HELLO_SOURCE_DIR}/. 
@@ -15,6 +18,7 @@ include_directories(
 	./OCC
 	./Timestamp
 	./Storage
+	./Network
 	./pthread_local_test.cpp
 	)
 
@@ -26,8 +30,14 @@ link_directories (
 set(mylib 
 	ibverbs 
 	rdmacm 
+	memcached
 	pthread)
 
 add_executable(rdma_measure main.cpp)
 
 TARGET_LINK_LIBRARIES(rdma_measure ${my_lib})
+
+add_executable(${TEST1} ./rdma_test/${TEST1}.cpp)
+
+TARGET_LINK_LIBRARIES(${TEST1} ${my_lib})
+

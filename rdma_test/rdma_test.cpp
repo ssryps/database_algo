@@ -3,8 +3,8 @@
 //
 
 #include "../Twopl/Twopl.h"
-#include "../Occ/Occ.h"
-#include "../Mvcc/Mvcc.h"
+#include "../OCC/Occ.h"
+#include "../MVCC/Mvcc.h"
 #include "../Timestamp/Timestamp.h"
 #include "rdma_utils.h"
 
