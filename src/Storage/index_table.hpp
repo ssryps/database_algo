@@ -30,21 +30,7 @@ public:
         return true;
     }
 
-    bool key_index_start(idx_key_t key, idx_key_t* index){
-        auto res = hash_index_ins.find(key);
-        if (res == hash_index_ins.end()) {
-            return false;
-        }
-        *index = hash_index_ins[key];
-        return true;
-    }
-
-    bool key_index_insert(idx_key_t key, idx_key_t index){
-        hash_index_ins[key] = index;
-        return true;
-    }
-
-    bool new_index(T_ptr item, idx_key_t* index){
+    bool index_new(T_ptr item, idx_key_t* index){
         table_index_ins.push_back(item);
         *index = table_index_ins.size() - 1;
         return true;
@@ -52,7 +38,6 @@ public:
 
 private:
     std::vector<T_ptr> table_index_ins;
-    __gnu_cxx::hash_map<idx_key_t, idx_key_t> hash_index_ins;
 
 };
 

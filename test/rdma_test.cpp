@@ -4,7 +4,7 @@
 
 #include "../Twopl/Twopl.h"
 #include "../OCC/Occ.h"
-#include "../MVCC/Mvcc.h"
+#include "CC_Algorithm/MVCC/Mvcc.hpp"
 #include "../Timestamp/Timestamp.h"
 #include "rdma_utils.h"
 

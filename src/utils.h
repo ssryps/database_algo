@@ -29,14 +29,13 @@ public:
 
 class TransactionResult{
 public:
-    std::vector<std::string> results;
+    std::vector<idx_value_t> results;
     bool isSuccess;
 };
 
 class Server {
 public:
     TransactionResult handle(Transaction transaction);
-    void show();
 };
 
 int get_machine_index(idx_key_t key){

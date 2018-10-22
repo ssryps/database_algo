@@ -1,4 +1,8 @@
-#include "rdma_test/rdma_test.cpp"
+#include "rdma_test.cpp"
+#include "Twopl.h"
+#include "Occ.h"
+#include "Timestamp.h"
+#include "Mvcc.hpp"
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
