@@ -12,14 +12,20 @@ int main(int argc, char *argv[]) {
 	char *algo_name;
 	while((choose = getopt(argc, argv, "a:")) != -1) {
 		switch(choose) {
-			case 'a':
-				algo_name = optarg;
-				break;
-			default:
-				printf("USAGE: XXXX\n");
-				exit(1);
+			case 'a': {
+                algo_name = optarg;
+                break;
+            }
+			default: {
+                printf("USAGE: -a algo_name\n");
+                exit(0);
+            }
 		}
 	}
+    if(!algo_name) {
+        printf("USAGE: -a algo_name\n");
+        exit(0);
+    }
 
 	if (strcmp(algo_name, "twopl") == 0 ) {
 		#ifdef RDMA

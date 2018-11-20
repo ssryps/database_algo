@@ -1,5 +1,4 @@
 #include <iostream>
-#include "pthread.h"
 #include "test_utils.hpp"
 #include <cstdlib>
 #include <CC_Algorithm/Twopl/Twopl.h>
@@ -8,10 +7,6 @@
 #include <thread>
 
 
-const int SERVER_THREAD_NUM = 4;
-const int CLIENT_THREAD_NUM = 4;
-const int SERVER_DATA_BUF_SIZE = 1024 * 1024 * 100;
-const int MEG_BUF_SIZE = 1024 * 10;
 
 struct ServerThreadInfo{
     int server_type; // 0 - 3 for twopl, occ, mvcc, timestamp
@@ -48,12 +43,13 @@ void* PthreadClient(void* args){
                 // now this server act as a client
                 TwoplServer *server = new TwoplServer;
                 server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE);
-                Transaction *transaction = generataTransaction();
-                TransactionResult result = server->handle(*transaction);
+                Transaction *transaction = generataTransaction(info->id);
+                TransactionResult result = server->handle(transaction);
+                int offset = 0;
                 char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
-                sprintf(output_buf, "result: \n");
+                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.isSuccess);
                 for (auto i : result.results)
-                    sprintf(output_buf, "%s\n", i);
+                    offset += sprintf(output_buf + offset, "%i\n", i);
                 printf(output_buf);
             #endif
 
@@ -91,7 +87,7 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
         }
         for(int i = 0; i < CLIENT_THREAD_NUM; i++){
             client_info[i].server_type = ALGO_TWOPL;
-            client_info[i].id = -1;
+            client_info[i].id = i;
             client_info[i].server_buf = global_buf;
    //         client_info[i].trans_flag = trans_flag;
     //        client_info[i].trans_msg = trans_msg;

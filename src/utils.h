@@ -11,7 +11,6 @@
 #include "defines.h"
 
 
-#define COMMAND_LEN sizeof(Command)
 const int MACHINE_NUM = 8;
 const int MAX_DATA_PER_MACH = 100000;
 
@@ -35,34 +34,9 @@ struct Command{
 
 
 
-idx_value_t value_from_command(Command command, idx_value_t* temp_result){
-    idx_value_t result = 0;
+idx_value_t value_from_command(Command command, idx_value_t* temp_result);
 
-    if(command.operation == WRITE) {
-        if (command.read_result_index_1 < 0)result += command.imme_1;
-        else result += temp_result[command.read_result_index_1];
-    }
-    if(command.operation == ALGO_ADD){
-        if (command.read_result_index_1 < 0)result += command.imme_1;
-        else result += temp_result[command.read_result_index_1];
-
-        if (command.read_result_index_2 < 0)result += command.imme_2;
-        else result += temp_result[command.read_result_index_2];
-    }
-
-    if(command.operation == ALGO_SUB){
-        if (command.read_result_index_1 < 0)result += command.imme_1;
-        else result += temp_result[command.read_result_index_1];
-
-        if (command.read_result_index_2 < 0)result -= command.imme_2;
-        else result -= temp_result[command.read_result_index_2];
-    }
-    return result;
-}
-
-
-class Transaction{
-public:
+struct Transaction{
     std::vector<Command> commands;
 };
 
@@ -74,11 +48,12 @@ public:
 
 
 
-int get_machine_index(idx_key_t key){
-    return (key % (MAX_DATA_PER_MACH * MACHINE_NUM)) / MAX_DATA_PER_MACH;
-}
+int get_machine_index(idx_key_t key);
 
 
-
+const int SERVER_THREAD_NUM = 4;
+const int CLIENT_THREAD_NUM = 2;
+const int SERVER_DATA_BUF_SIZE = 1024 * 1024 * 100;
+const int MEG_BUF_SIZE = 1024 * 10;
 
 #endif //RDMA_MEASURE_UTILS_H

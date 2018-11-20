@@ -6,13 +6,13 @@
 #include <assert.h>
 
 const int COMMMAND_PER_TRANSACTION = 4;
-const int KEY_RANGE = 5;
+const int KEY_RANGE = 3;
 const int VALUE_RANGE = 5;
 
-Command generateCommand(){
+Command generateRandomCommand(){
     Command command;
     Operation operation = (rand() % 2 == 0? WRITE: READ);
-    idx_key_t key = rand() % KEY_RANGE;
+    idx_key_t key = rand() % KEY_RANGE + (rand() % CLIENT_THREAD_NUM) * MAX_DATA_PER_MACH;
     idx_value_t value = rand() % VALUE_RANGE;
     command.operation = operation;
     command.key = key;
@@ -22,24 +22,123 @@ Command generateCommand(){
     return command;
 }
 
-Transaction* generataTransaction() {
+Transaction* generataTransaction(int id) {
     Transaction *transaction = new Transaction;
-#ifdef DEBUG
-    char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
-    memset(output_buf, 0, COMMMAND_PER_TRANSACTION * 100 * sizeof(char));
-#endif
-    for (int i = 0; i < COMMMAND_PER_TRANSACTION; i++) {
-        Command command = generateCommand();
-        transaction->commands.push_back(command);
-#ifdef DEBUG
-        sprintf(output_buf, "%ld> %llu: key: %llu, imm1: %llu, index: %i, imm2: %llu, index: %i \n", i, command.operation, command.key,
-                command.imme_1, command.read_result_index_1, command.imme_2, command.read_result_index_2);
-#endif
-    }
+    #ifdef DEBUG
+        char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
+        memset(output_buf, 0, COMMMAND_PER_TRANSACTION * 100 * sizeof(char));
+        int offset = 0;
+    #endif
 
-#ifdef DEBUG
-    printf(output_buf);
-#endif
+#ifdef NO_RANDOM
+    Command *command = new Command[100];
+    int idx = 0;
+
+    // first server:
+    // result should be             500 500 0 400 400 500 400 500
+    //             then             500 500 500 400 400 500 400 500
+    command[idx].operation = WRITE;
+    command[idx].key = 0;
+    command[idx].read_result_index_1 = -1;
+    command[idx].imme_1 = 500;
+    idx ++;
+
+    command[idx].operation = READ;
+    command[idx].key = 0;
+    idx ++;
+
+    command[idx].operation = READ;
+    command[idx].key = 1;
+    idx ++;
+
+    command[idx].operation = ALGO_SUB;
+    command[idx].read_result_index_1 = idx - 2;
+    command[idx].read_result_index_2 = -1;
+    command[idx].imme_2 = 100;
+    idx ++;
+
+    command[idx].operation = WRITE;
+    command[idx].key = 0;
+    command[idx].read_result_index_1 = idx - 1;
+    idx ++;
+
+    command[idx].operation = WRITE;
+    command[idx].key = 1;
+    command[idx].read_result_index_1 = idx - 4;
+    idx ++;
+
+    command[idx].operation = READ;
+    command[idx].key = 0;
+    idx ++;
+
+    command[idx].operation = READ;
+    command[idx].key = 1;
+    idx ++;
+
+    // another server, result should be     1000 0 1000 2000 2000 900 900 2000 900
+    //                              then    1000 2000 1000 2000 2000 900 900 2000 900
+    command[idx].operation = WRITE;
+    command[idx].key = 1 + MAX_DATA_PER_MACH;
+    command[idx].read_result_index_1 = -1;
+    command[idx].imme_1 = 1000;
+    idx ++;
+
+    command[idx].operation = READ;
+    command[idx].key = 0 + MAX_DATA_PER_MACH;
+    idx ++;
+
+    command[idx].operation = READ;
+    command[idx].key = 1 + MAX_DATA_PER_MACH;
+    idx ++;
+
+    command[idx].operation = ALGO_ADD;
+    command[idx].read_result_index_1 = idx - 1;
+    command[idx].read_result_index_2 = idx - 1;
+    idx ++;
+
+    command[idx].operation = WRITE;
+    command[idx].key = 0 + MAX_DATA_PER_MACH;
+    command[idx].read_result_index_1 = idx - 1;
+    idx ++;
+
+
+    command[idx].operation = ALGO_SUB;
+    command[idx].read_result_index_1 = idx - 3;
+    command[idx].read_result_index_2 = -1;
+    command[idx].imme_2 = 100;
+    idx ++;
+
+    command[idx].operation = WRITE;
+    command[idx].key = 1 + MAX_DATA_PER_MACH;
+    command[idx].read_result_index_1 = idx - 1;
+    idx ++;
+
+
+    command[idx].operation = READ;
+    command[idx].key = 0 + MAX_DATA_PER_MACH;
+    idx ++;
+
+    command[idx].operation = READ;
+    command[idx].key = 1 + MAX_DATA_PER_MACH;
+    idx ++;
+
+    for(int i = 0; i < idx; i++)transaction->commands.push_back(command[i]);
+#else
+    for (int i = 0; i < COMMMAND_PER_TRANSACTION; i++) {
+        Command command = generateRandomCommand();
+        transaction->commands.push_back(command);
+        #ifdef DEBUG
+        offset += sprintf(output_buf + offset, "thread %i %ld th> %llu: key: %llu, imm1: %llu, index: %i, imm2: %llu, index: %i \n",
+                id , i, command.operation, command.key, command.imme_1, command.read_result_index_1, command.imme_2, command.read_result_index_2);
+        #endif
+    }
+    #endif
+
+    #ifdef DEBUG
+        printf(output_buf);
+    #endif
+
+    return transaction;
 }
 
 

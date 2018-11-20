@@ -4,8 +4,8 @@
 #include <iostream>
 #include <memory>
 
-#include "../utils.h"
-#include "../defines.h"
+#include "utils.h"
+#include "defines.h"
 
 
 template<typename T>

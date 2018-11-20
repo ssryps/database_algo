@@ -24,7 +24,12 @@ include_directories(
 set( addition_lib
 	ibverbs rdmacm memcached pthread )
 
-add_executable(main src/main.cpp src/test/test_utils.hpp src/CC_Algorithm/CCServer.hpp)
+add_executable(main
+		src/main.cpp
+#		src/test/test_utils.hpp
+		src/CC_Algorithm/CCServer.hpp
+		src/CC_Algorithm/Twopl/Twopl.cpp
+		src/utils.cpp)
 
 TARGET_LINK_LIBRARIES(main ${addition_lib})
 
@@ -34,3 +39,7 @@ TARGET_LINK_LIBRARIES(main ${addition_lib})
 
 
 add_compile_definitions(DEBUG)
+
+add_compile_definitions(NO_RANDOM)
+
+add_compile_definitions(TWO_SIDE)

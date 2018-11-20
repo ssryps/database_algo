@@ -49,7 +49,7 @@ bool TwoplServer::recv(int mach_id, int type, idx_key_t key, idx_value_t* value)
 
 
 bool TwoplServer::rdma_read(int mach_id, int type, idx_key_t key, idx_value_t* value){
-    *value =
+    //*value =
     return true;
 }
 
@@ -57,6 +57,13 @@ bool TwoplServer::rdma_write(int mach_id, int type, idx_key_t key, idx_value_t v
     return true;
 }
 
+bool TwoplServer::rdma_send(int mach_id, int type, idx_key_t key, idx_value_t value) {
+    return true;
+}
+
+bool TwoplServer::rdma_recv(int mach_id, int type, idx_key_t key, idx_value_t *value) {
+    return true;
+}
 
 bool TwoplServer::rdma_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value){
     return true;
@@ -78,6 +85,7 @@ bool TwoplServer::pthread_read(int mach_id, int type, idx_key_t key, idx_value_t
             break;
         }
     }
+    return true;
 }
 
 bool TwoplServer::pthread_write(int mach_id, int type, idx_key_t key, idx_value_t value) {
@@ -92,20 +100,30 @@ bool TwoplServer::pthread_write(int mach_id, int type, idx_key_t key, idx_value_
             break;
         }
     }
+    return true;
 }
+
+
+bool TwoplServer::pthread_send(int mach_id, int type, idx_key_t key, idx_value_t value) {
+    return true;
+}
+
+bool TwoplServer::pthread_recv(int mach_id, int type, idx_key_t key, idx_value_t *value) {
+    return true;
+}
+
 
 bool TwoplServer::pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value) {
     TwoplDataBuf* des_buf = reinterpret_cast<TwoplDataBuf*>(this->global_buf[mach_id]);
     switch (type) {
         case TWOPL_DATA_LOCK: {
-            __sync_bool_compare_and_swap(&(des_buf->lockBuf[key % MAX_DATA_PER_MACH]), old_value, new_value);
-            break;
+            return __sync_bool_compare_and_swap(&(des_buf->lockBuf[key % MAX_DATA_PER_MACH]), old_value, new_value);
         }
         case TWOPL_DATA_VALUE: {
-            __sync_bool_compare_and_swap(&(des_buf->valueBuf[key % MAX_DATA_PER_MACH]), old_value, new_value);
-            break;
+            return __sync_bool_compare_and_swap(&(des_buf->valueBuf[key % MAX_DATA_PER_MACH]), old_value, new_value);
         }
     }
+    return false;
 }
 
 //bool TwoplServer::pthread_fetch_and_add(int mach_id, int type, idx_key_t key) {
@@ -152,18 +170,18 @@ bool TwoplServer::unlock(idx_key_t key) {
 }
 
 
-#ifdef RDMA
-
-#else
-bool TwoplServer::init(int id, char **buf, size_t sz) {
+//#ifdef RDMA
+//
+//#else
+bool TwoplServer::init(int id, char **buf, int sz) {
     this->server_id = id;
     this->global_buf = buf;
     assert(sz >= sizeof(TwoplDataBuf));
-    return OK;
+    return true;
 }
-#endif
+//#endif
 
-TransactionResult TwoplServer::handle(Transaction transaction) {
+TransactionResult TwoplServer::handle(Transaction* transaction) {
 
     TransactionResult results;
     std::set<idx_key_t > keys;
@@ -174,13 +192,13 @@ TransactionResult TwoplServer::handle(Transaction transaction) {
     }
 
 
-    for (Command command : transaction.commands) { keys.insert(command.key); }
+    for (Command command : transaction->commands) { keys.insert(command.key); }
     for(auto i = keys.begin(); i != keys.end(); i++){ lock(*i); }
 
-    idx_value_t * temp_result = new idx_value_t[transaction.commands.size()];
-    for (int i = 0; i < transaction.commands.size(); i++) {
-        Command command = transaction.commands[i];
-        TwoplEntry *entry;
+    idx_value_t *temp_result = new idx_value_t[transaction->commands.size()];
+    for (int i = 0; i < transaction->commands.size(); i++) {
+        Command command = transaction->commands[i];
+        TwoplEntry *entry = new TwoplEntry;
         switch (command.operation) {
             case WRITE : {
                 idx_value_t r = value_from_command(command, temp_result);
@@ -215,7 +233,7 @@ TransactionResult TwoplServer::handle(Transaction transaction) {
 int TwoplServer::run() {
 #ifdef TWO_SIDE
 #else
-
+    return 0;
 
 #endif
 }
