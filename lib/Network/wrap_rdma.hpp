@@ -90,6 +90,12 @@ public:
         return *((uint64_t *)buffer);
     }
 
+    /*
+     *
+     * */
+
+//    void wrap_post_send(char *buffer, size)
+
     forceinline void wrap_post_write_offset(char *buffer, size_t size, long offset, int qp_index) {
 
         if (size > max_inline_size) {

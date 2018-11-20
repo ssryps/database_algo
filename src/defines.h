@@ -2,8 +2,8 @@
 #define DEFINES_H
 
 typedef uint64_t idx_key_t; // key id for index
-typedef uint64_t idx_value_t;
-
+typedef int64_t idx_value_t;
+typedef int 	 idx_index_t; // for mvcc : key ---> index ---> value
 
 enum Data_type {DT_table, DT_page, DT_row };
 

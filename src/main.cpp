@@ -1,18 +1,11 @@
-#include "rdma_test.cpp"
-#include "Twopl.h"
-#include "Occ.h"
-#include "Timestamp.h"
-#include "Mvcc.hpp"
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <getopt.h>
-
-extern void RdmaTwoplTest(int, char*[]);
+#include "test/test_pthread.cpp"
+//#include "test/test_rdma.cpp"
 
 int main(int argc, char *argv[]) {
-    //MvccTest();
-    //TimeStampTest();
 
 	int choose;
     char option;
@@ -28,15 +21,34 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	if (algo_name == "2PL") {
+	if (strcmp(algo_name, "twopl") == 0 ) {
+		#ifdef RDMA
+				RdmaTest(argc, argv, ALGO_TWOPL);
+		#else
+				PthreadTest(argc, argv, ALGO_TWOPL);
+		#endif
 
-	    RdmaTwoplTest(argc, argv);
-	    // TwoplTest();
-	} else if (algo_name == "OCC") {
+	} else if(strcmp(algo_name, "occ") == 0){
+		#ifdef RDMA
+				RdmaTest(argc, argv, ALGO_OCC);
+		#else
+				PthreadTest(argc, argv, ALGO_OCC);
+		#endif
 
-	    // OccTest();
-	} else {
-		// TODO
+	} else if(strcmp(algo_name, "mvcc") == 0) {
+		#ifdef RDMA
+				RdmaTest(argc, argv, ALGO_MVCC);
+		#else
+				PthreadTest(argc, argv, ALGO_MVCC);
+		#endif
+
+	} else if(strcmp(algo_name, "timestamp") == 0) {
+		#ifdef RDMA
+				RdmaTest(argc, argv, ALGO_TIMESTAMP);
+		#else
+				PthreadTest(argc, argv, ALGO_TIMESTAMP);
+		#endif
+
 	}
 
     return 0;

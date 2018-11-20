@@ -8,9 +8,10 @@
 
 #include <map>
 #include <mutex>
-#include "home/mason/CS/Code/database_algo/src/utils.h"
+#include "utils.h"
+#include "../CCServer.hpp"
 
-class OccServer : Server{
+class OccServer : public CCServer{
 public:
     OccServer(){}
     TransactionResult handle(Transaction transaction);

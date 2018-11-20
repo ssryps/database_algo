@@ -9,6 +9,7 @@
 #include <map>
 #include <list>
 #include <atomic>
+#include <Storage/index_table.hpp>
 #include "utils.h"
 #include "defines.h"
 #include "index_hashtable.hpp"
@@ -24,7 +25,19 @@ static std::atomic<int> cur(0);
 
 class MvccServer : public Server{
 public:
-    MvccServer(){};
+    MvccServer(){}
+    bool init(int id, char* buf, int buf_sz){
+        this->id = id;
+        this->buf = buf;
+        database_init =  buf;
+        data_mutex_init = buf + buf_sz / 3;
+        index_init = buf + buf_sz * 2 / 3;
+        database.init(database_init);
+        data_mutex.init(data_mutex_init);
+        index_database.init(index_init);
+        return OK;
+    }
+
     TransactionResult handle(Transaction transaction){
         TransactionResult results;
         int start_time = getCurrentTimeStamp();
@@ -33,6 +46,7 @@ public:
         for (Command command : transaction.commands) {
             if (command.operation == WRITE) {
                 int key = command.key, key_start_pos;
+                acquire_lock(key);
                 get_key_start(command.key, &key_start_pos);
                 if(key_start_pos == -1){
                     MvccEntry *newEntry = new MvccEntry{
@@ -78,9 +92,11 @@ public:
                         key_cur_pos = mvcc_entry.next;
                     }
                 }
+                release_lock(key);
             }
             if (command.operation == READ) {
                 int key = command.key, key_start_pos;
+                acquire_lock(key);
                 get_key_start(key, &key_start_pos);
                 if(key_start_pos == -1)results.results.push_back(NULL);
                 else {
@@ -98,31 +114,50 @@ public:
                         key_cur_pos = mvcc_entry.next;
                     }
                 }
+                release_lock(key);
             }
         }
     }
 
 private:
-    HashTableIndex<MvccEntry*> database;
-    HashTableIndex<int> key_start_database;
-    bool get_key_start(idx_key_t key, int* pos){
-        return true;
-    }
-    bool put_key_start(idx_key_t key, int pos){
+    int id;
+    char* buf;
+    char *database_init, *data_mutex_init, *index_init;
+    // store the data which rmda will access directly
+    TableIndex<MvccEntry> database;
+    TableIndex<bool> data_mutex;
+    TableIndex<idx_index_t> index_database;
+
+
+    bool acquire_lock(idx_key_t key){
         return true;
     }
 
-    bool get_entry(idx_key_t key, int pos, MvccEntry* entry){
+    bool release_lock(idx_key_t key){
+        return true;
+    }
+    // all the following functions should acquire the lock first
+    bool get_key_start(idx_key_t key, idx_index_t *index){
         return true;
     }
 
-    bool put_entry(idx_key_t key, int pos, MvccEntry* entry){
+    bool put_key_start(idx_key_t key, idx_index_t index){
         return true;
     }
 
-    bool new_entry(idx_key_t key, int* pos){
+    bool get_entry(idx_key_t key, idx_index_t index, MvccEntry* entry){
         return true;
     }
+
+    bool put_entry(idx_key_t key, idx_index_t pos, MvccEntry* entry){
+        return true;
+    }
+
+    bool new_entry(idx_key_t key, idx_index_t* pos){
+        // need to do compare and swap
+        return true;
+    }
+
     int getCurrentTimeStamp(){
         // this functions is currently local, and need to be extended to global time later
 

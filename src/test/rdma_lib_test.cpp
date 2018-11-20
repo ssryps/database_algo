@@ -2,7 +2,7 @@
 #include <cassert>
 #include <getopt.h>
 
-#include "../Network/wrap_rdma.hpp"
+//#include "../Network/wrap_rdma.hpp"
 
 const int mem_size = 1 << 10;
 

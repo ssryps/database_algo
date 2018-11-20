@@ -8,7 +8,8 @@
 
 #include <map>
 #include <list>
-#include "home/mason/CS/Code/database_algo/src/utils.h"
+#include "utils.h"
+#include "../CCServer.hpp"
 
 static int TIMESTAMP_TABLE_NUM = 10;
 
@@ -44,7 +45,7 @@ private:
 
 int getCurrentTimeStamp();
 
-class TimestampServer : public Server {
+class TimestampServer : public CCServer {
 
 public:
     TimestampServer(){};
