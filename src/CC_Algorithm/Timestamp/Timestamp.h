@@ -11,48 +11,83 @@
 #include "utils.h"
 #include "../CCServer.hpp"
 
-static int TIMESTAMP_TABLE_NUM = 10;
+#define TIMESTAMP_TABLE_NUM  10
+
+#define ATOMIC_OFFSET 0
+#define TABLE_OFFSET sizeof(std::atomic<int>)
+
+// operation code
+#define TS_FEACH_AND_ADD_TIMESTAMP 0
+
+#define TS_COMPARE_AND_SWAP_VALUE 0
+#define TS_COMPARE_AND_SWAP_LAST_READ 1
+#define TS_COMPARE_AND_SWAP_LAST_WRITE 2
+
+
 
 struct TimestampEntry{
-    std::string key, value;
-    int lastRead, lastWrite;
+    idx_value_t value;
+    idx_value_t lastRead;
+    idx_value_t lastWrite;
 };
 
-class TimestampEntryBatch{
+class TimestampDatabase{
 public:
-    TimestampEntry get(int index);
-    int find(std::string key);
-    void insert(std::string key, TimestampEntry entry);
+    TimestampDatabase(char* buf);
+    bool get(idx_key_t key, TimestampEntry* entry);
+    bool insert(idx_key_t key, TimestampEntry* entry);
 private:
-    std::vector<TimestampEntry> table;
+    TimestampEntry *table;
 };
 
 
-class TimestampDatabase {
-public:
-    static std::hash<std::string> chash;
-
-    TimestampDatabase();
-    TimestampEntry* get(std::string key);
-    void set(std::string key, TimestampEntry entry);
-    void show();
-private:
-    TimestampEntryBatch getEntryTableBatchByHash(size_t hash);
-    void updateEntryTableBatchByHash(size_t hash, TimestampEntryBatch batch);
-    // just for local test, this tables can be extended to multiple machine
-    std::vector<TimestampEntryBatch> tables;
-};
-
-int getCurrentTimeStamp();
 
 class TimestampServer : public CCServer {
 
 public:
-    TimestampServer(){};
-    TransactionResult handle(Transaction transaction);
-    void show();
+    TimestampServer();
+    TransactionResult handle(Transaction* transaction);
+#ifdef RDMA
+
+#else
+    bool init(int id, char** data_buf, int sz);
+#endif
+
+    int run();
 private:
-    TimestampDatabase database;
+    int server_id;
+    int buf_sz;
+#ifdef RDMA
+#else
+
+    char** global_buf;
+#endif
+
+    bool write             (int mach_id, int type, idx_key_t key, idx_value_t value);
+    bool read              (int mach_id, int type, idx_key_t key, idx_value_t* value);
+    bool send              (int mach_id, int type, char* buf, int sz);
+    bool recv              (int* mach_id, int type, char* buf, int* sz);
+    bool compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
+    bool fetch_and_add     (int mach_id, int type, idx_key_t key, idx_value_t* value);
+
+
+    bool rdma_write             (int mach_id, int type, idx_key_t key, idx_value_t entry);
+    bool rdma_read              (int mach_id, int type, idx_key_t key, idx_value_t* entry);
+    bool rdma_send              (int mach_id, int type, char* buf, int sz);
+    bool rdma_recv              (int* mach_id, int type, char* buf, int* sz);
+    bool rdma_compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
+    bool rdma_fetch_and_add     (int mach_id, int type, idx_key_t key, idx_value_t* value);
+
+    //  bool rdma_fetch_and_add     (int mach_id, int type, idx_key_t key);
+
+    bool pthread_write          (int mach_id, int type, idx_key_t key, idx_value_t entry);
+    bool pthread_read           (int mach_id, int type, idx_key_t key, idx_value_t* entry);
+    bool pthread_send               (int mach_id, int type, char* buf, int sz);
+    bool pthread_recv               (int* mach_id, int type, char* buf, int* sz);
+    bool pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
+    bool pthread_fetch_and_add     (int mach_id, int type, idx_key_t key, idx_value_t* value);
+
+    bool get_timestamp(idx_value_t* value);
 };
 
 

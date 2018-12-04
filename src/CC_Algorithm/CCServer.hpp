@@ -9,17 +9,17 @@
 
 class CCServer {
 public:
-    CCServer(){}
-    virtual TransactionResult handle(Transaction* transaction){}
-    virtual int run(){}
+//    CCServer(){}
+    virtual TransactionResult handle(Transaction* transaction) = 0;
+    virtual int run() = 0;
 
 
 protected:
     // primitive
     virtual bool write  (int mach_id, int type, idx_key_t key, idx_value_t value){}
     virtual bool read   (int mach_id, int type, idx_key_t key, idx_value_t* value){}
-    virtual bool send   (int mach_id, int type, idx_key_t key, idx_value_t value){}
-    virtual bool recv   (int mach_id, int type, idx_key_t key, idx_value_t* value){}
+    virtual bool send   (int mach_id, int type, char* buf, int sz){}
+    virtual bool recv   (int* mach_id, int type, char* buf, int* sz){}
     virtual bool compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value){}
 
 

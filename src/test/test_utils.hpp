@@ -173,7 +173,7 @@ size_t putTransactionToBuffer(Transaction* transaction, char* buf){
     return start - buf;
 }
 
-Transaction getTransactionFromBuffer(char* buf, size_t length){
+Transaction* getTransactionFromBuffer(char* buf, size_t length){
     Transaction *transaction = new Transaction;
     char* start = buf;
     while(true){
@@ -191,7 +191,7 @@ Transaction getTransactionFromBuffer(char* buf, size_t length){
         if(start - buf > length - sizeof(Command) - 1)break;
     }
 
-    return *transaction;
+    return transaction;
 }
 
 size_t putResultToBuffer(TransactionResult result, char* buf){

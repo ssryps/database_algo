@@ -18,7 +18,6 @@
 #define TWOPL_DATA_LOCK 0
 #define TWOPL_DATA_VALUE 1
 
-static int TWOPL_TABLE_NUM = 10;
 struct TwoplEntry{
     idx_key_t   key;
     idx_value_t value;
@@ -30,28 +29,33 @@ struct TwoplDataBuf {
     idx_value_t valueBuf[MAX_DATA_PER_MACH];
 };
 
-struct  TwoplMegBuf {
+struct  TwoplMsgBuf {
     bool lock;
-
+    int upper_bound, low_bound;
+    int msg_start[MEG_BUF_SIZE];
+    int msg_end  [MEG_BUF_SIZE];
 };
 
 class TwoplServer : public CCServer{
 
 public:
     TwoplServer(){}
-    #ifdef RDMA
 
-    #else
-        bool init(int id, char** data_buf, int sz);
-    #endif
+#ifdef RDMA
+
+#else
+    bool init(int id, char** data_buf, int sz);
+#endif
 
     TransactionResult handle(Transaction* transaction);
     int run();
 private:
     // server metadata
     int server_id;
+    int buf_sz;
     #ifdef RDMA
     #else
+
         char** global_buf;
     #endif
     bool put(idx_key_t key, TwoplEntry* value);
@@ -61,21 +65,21 @@ private:
 
     bool write             (int mach_id, int type, idx_key_t key, idx_value_t value);
     bool read              (int mach_id, int type, idx_key_t key, idx_value_t* value);
-    bool send              (int mach_id, int type, idx_key_t key, idx_value_t value);
-    bool recv              (int mach_id, int type, idx_key_t key, idx_value_t* value);
+    bool send              (int mach_id, int type, char* buf, int sz);
+    bool recv              (int* mach_id, int type, char* buf, int* sz);
     bool compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
 
     bool rdma_write             (int mach_id, int type, idx_key_t key, idx_value_t entry);
     bool rdma_read              (int mach_id, int type, idx_key_t key, idx_value_t* entry);
-    bool rdma_send              (int mach_id, int type, idx_key_t key, idx_value_t value);
-    bool rdma_recv              (int mach_id, int type, idx_key_t key, idx_value_t* value);
+    bool rdma_send              (int mach_id, int type, char* buf, int sz);
+    bool rdma_recv              (int* mach_id, int type, char* buf, int* sz);
     bool rdma_compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
   //  bool rdma_fetch_and_add     (int mach_id, int type, idx_key_t key);
 
     bool pthread_write          (int mach_id, int type, idx_key_t key, idx_value_t entry);
     bool pthread_read           (int mach_id, int type, idx_key_t key, idx_value_t* entry);
-    bool pthread_send              (int mach_id, int type, idx_key_t key, idx_value_t value);
-    bool pthread_recv              (int mach_id, int type, idx_key_t key, idx_value_t* value);
+    bool pthread_send               (int mach_id, int type, char* buf, int sz);
+    bool pthread_recv               (int* mach_id, int type, char* buf, int* sz);
     bool pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
   //  bool pthread_fetch_and_add  (int mach_id, int type, idx_key_t key);
 

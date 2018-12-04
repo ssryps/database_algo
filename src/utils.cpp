@@ -30,6 +30,6 @@ idx_value_t value_from_command(Command command, idx_value_t* temp_result){
 
 
 int get_machine_index(idx_key_t key){
-    return (key % (MAX_DATA_PER_MACH * MACHINE_NUM)) / MAX_DATA_PER_MACH;
+    return (key % (MAX_DATA_PER_MACH * SERVER_THREAD_NUM)) / MAX_DATA_PER_MACH;
 }
 

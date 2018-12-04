@@ -29,6 +29,12 @@ void* PthreadServer(void* args){
             server->run();
             break;
         }
+
+        case ALGO_TIMESTAMP: {
+            TimestampServer* server = new TimestampServer;
+
+            break;
+        }
     }
 
 }
@@ -82,18 +88,24 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
             server_info[i].server_type = ALGO_TWOPL;
             server_info[i].id = i;
             server_info[i].thread_buf = global_buf;
-  //          server_info[i].trans_flag = trans_flag + i;
-  //          server_info[i].trans_msg = trans_msg[i];
         }
         for(int i = 0; i < CLIENT_THREAD_NUM; i++){
             client_info[i].server_type = ALGO_TWOPL;
-            client_info[i].id = i;
+            client_info[i].id = -i;
             client_info[i].server_buf = global_buf;
-   //         client_info[i].trans_flag = trans_flag;
-    //        client_info[i].trans_msg = trans_msg;
         }
     } else if(algo_name == ALGO_OCC) {
-        //      server = new OccServer;
+        for(int i = 0; i < SERVER_THREAD_NUM; i++) {
+            server_info[i].server_type = ALGO_TIMESTAMP;
+            server_info[i].id = i;
+            server_info[i].thread_buf = global_buf;
+        }
+        for(int i = 0; i < CLIENT_THREAD_NUM; i++){
+            client_info[i].server_type = ALGO_TIMESTAMP;
+            client_info[i].id = -i;
+            client_info[i].server_buf = global_buf;
+        }
+
     } else if(algo_name == ALGO_MVCC) {
         //      server = new MvccServer;
     } else if(algo_name == ALGO_TIMESTAMP) {

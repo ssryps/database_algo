@@ -11,14 +11,12 @@
 #include "defines.h"
 
 
-const int MACHINE_NUM = 8;
-const int MAX_DATA_PER_MACH = 100000;
 
 enum RC {OK, ABORT, COMMIT, WAIT, ERROR};
 
 enum CC_ALGO{ALGO_TWOPL, ALGO_OCC, ALGO_MVCC, ALGO_TIMESTAMP};
 
-enum Operation {READ, WRITE, ALGO_ADD, ALGO_SUB};
+enum Operation {ALGO_READ, ALGO_WRITE, ALGO_ADD, ALGO_SUB};
 
 
 
@@ -50,9 +48,10 @@ public:
 
 int get_machine_index(idx_key_t key);
 
+const int MAX_DATA_PER_MACH = 1000000;
 
 const int SERVER_THREAD_NUM = 4;
-const int CLIENT_THREAD_NUM = 2;
+const int CLIENT_THREAD_NUM = 8;
 const int SERVER_DATA_BUF_SIZE = 1024 * 1024 * 100;
 const int MEG_BUF_SIZE = 1024 * 10;
 

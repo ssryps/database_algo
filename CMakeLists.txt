@@ -42,4 +42,4 @@ add_compile_definitions(DEBUG)
 
 add_compile_definitions(NO_RANDOM)
 
-add_compile_definitions(TWO_SIDE)
+#add_compile_definitions(TWO_SIDE)
