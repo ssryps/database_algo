@@ -94,7 +94,7 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
             client_info[i].id = -i;
             client_info[i].server_buf = global_buf;
         }
-    } else if(algo_name == ALGO_OCC) {
+    } else if(algo_name == ALGO_TIMESTAMP) {
         for(int i = 0; i < SERVER_THREAD_NUM; i++) {
             server_info[i].server_type = ALGO_TIMESTAMP;
             server_info[i].id = i;
@@ -108,8 +108,17 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
 
     } else if(algo_name == ALGO_MVCC) {
         //      server = new MvccServer;
-    } else if(algo_name == ALGO_TIMESTAMP) {
-        //     server = new TimestampServer;
+    } else if(algo_name == ALGO_OCC) {
+        for(int i = 0; i < SERVER_THREAD_NUM; i++){
+            server_info[i].server_type = ALGO_TWOPL;
+            server_info[i].id = i;
+            server_info[i].thread_buf = global_buf;
+        }
+        for(int i = 0; i < CLIENT_THREAD_NUM; i++){
+            client_info[i].server_type = ALGO_TWOPL;
+            client_info[i].id = -i;
+            client_info[i].server_buf = global_buf;
+        }
     } else {
         std::cout << "wrong server name";
         exit(0);

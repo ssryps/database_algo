@@ -146,6 +146,10 @@ bool TimestampServer::pthread_compare_and_swap(int mach_id, int type, idx_key_t 
             TimestampEntry* pos = des_buf + (key % MAX_DATA_PER_MACH);
             return __sync_bool_compare_and_swap(((char*)pos) + 2 * sizeof(idx_value_t), old_value, new_value);
         }
+        case TS_COMPARE_AND_SWAP_LAST_LOCK: {
+            TimestampEntry* pos = des_buf + (key % MAX_DATA_PER_MACH);
+            return __sync_bool_compare_and_swap(((char*)pos) + 3 * sizeof(idx_value_t), old_value, new_value);
+        }
     }
     return false;
 }
@@ -192,8 +196,81 @@ int TimestampServer::run() {
 }
 
 bool TimestampServer::get_timestamp(idx_value_t* value) {
-    return fetch_and_add(0, FEACH_AND_ADD_TIMESTAMP, 0, value);
+    return fetch_and_add(0, TS_FEACH_AND_ADD_TIMESTAMP, 0, value);
 }
+
+// non-block, if it can't get the lock or read the data, return false. otherwise return true
+bool TimestampServer::get_entry(idx_key_t key, TimestampEntry* value) {
+#ifdef TWO_SIDE
+
+#else
+    bool ok = true;
+    ok = read(get_machine_index(key), TS_READ_VALUE, key, &(value->value));
+    if(!ok)return false;
+    ok = read(get_machine_index(key), TS_READ_LAST_READ, key, &(value->lastRead));
+    if(!ok)return false;
+    ok = read(get_machine_index(key), TS_READ_LAST_WRITE, key, &(value->lastWrite));
+    if(!ok)return false;
+#endif
+}
+
+
+bool TimestampServer::change_entry(idx_key_t key, idx_value_t value, idx_value_t lastRead, idx_value_t lastWrite) {
+#ifdef TWO_SIDE
+
+#else
+
+#endif
+}
+
+bool TimestampServer::rollback(Transaction *transaction, int lastpos, std::vector<idx_value_t> value_list,
+                               std::vector<idx_value_t> write_time_list) {
+#ifdef TWO_SIDE
+    for(int i = 0; i < lastpos; i ++) {
+        Command command = transaction->commands[i];
+        switch (command.operation) {
+            case ALGO_WRITE: {
+
+                break;
+            }
+
+            case ALGO_READ: {
+
+                break;
+            }
+
+            case ALGO_ADD:
+            case ALGO_SUB: {
+
+                break;
+            }
+        }
+    }
+
+#else
+    for(int i = 0; i < lastpos; i ++) {
+        Command command = transaction->commands[i];
+        switch (command.operation) {
+            case ALGO_WRITE: {
+
+                break;
+            }
+
+            case ALGO_READ: {
+
+                break;
+            }
+
+            case ALGO_ADD:
+            case ALGO_SUB: {
+
+                break;
+            }
+        }
+    }
+#endif
+}
+
 
 
 TransactionResult TimestampServer::handle(Transaction* transaction) {
@@ -211,75 +288,65 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
         exit(1);
     }
 
-    std::vector<TimestampEntry> tempEntries;
-
-    std::map<std::string, TimestampEntry> tempMap;
+    // backup for abortion
+    std::vector<TimestampEntry> pre_entries;
 
     bool abort = false;
     idx_value_t *temp_result = new idx_value_t[transaction->commands.size()];
-    for(Command command : transaction->commands) {
+
+    std::vector<idx_value_t> rollback_value_list(transaction->commands.size());
+    std::vector<idx_value_t> rollback_write_time_list(transaction->commands.size());
+
+    int i;
+    for(i = 0; i < transaction->commands.size(); i ++ ) {
+        Command command = transaction->commands[i];
         switch (command.operation) {
             case ALGO_WRITE: {
-                read(command.key, comman)
+                TimestampEntry old_entry;
+                idx_value_t r = value_from_command(command, temp_result);
 
-                // check if conflict happens
-                if (tempMap[command.key].lastWrite > timeStamp) {
+                get_entry(command.key, &old_entry);
+                if (old_entry.lastWrite > cur_timestamp || old_entry.lastRead > cur_timestamp) {
                     abort = true;
-                    break;
                 } else {
-                    // update local map, store new entries to a temp host
-                    result.results.push_back(tempMap[command.key].value);
-                    int readTime = std::max(tempMap[command.key].lastRead, timeStamp),
-                            writeTime = tempMap[command.key].lastWrite;
-                    TimestampEntry entry1 = TimestampEntry{command.key, tempMap[command.key].value, readTime,
-                                                           writeTime};
-                    tempMap[command.key] = entry1;
-                    tempEntries.push_back(entry1);
+                    rollback_value_list[i] = old_entry.value;
+                    rollback_write_time_list[i] = old_entry.lastWrite;
+                    result.results.push_back(r);
+                    change_entry(command.key, r, old_entry.lastRead, cur_timestamp);
                 }
 
                 break;
             }
 
             case ALGO_READ: {
-                if (tempMap.count(command.key) == 0) {
-                    TimestampEntry *entry = this->database.get(command.key);
-                    if (entry != NULL)tempMap[command.key] = *entry;
-                    else tempMap[command.key] = TimestampEntry{command.key, "NULL", -1, -1};
-                }
-
-                // check if conflict happens
-                if (tempMap[command.key].lastRead > timeStamp || tempMap[command.key].lastWrite > timeStamp) {
-                    // if so, abort this transaction
+                TimestampEntry old_entry;
+                get_entry(command.key, &old_entry);
+                if (old_entry.lastWrite > cur_timestamp) {
                     abort = true;
-                    break;
                 } else {
-                    // update local map, store new entries to a temp host
-                    result.results.push_back(command.value);
-                    int readTime = tempMap[command.key].lastRead,
-                            writeTime = timeStamp;
-                    TimestampEntry entry1 = TimestampEntry{command.key, command.value, readTime, writeTime};
-                    tempMap[command.key] = entry1;
-                    tempEntries.push_back(entry1);
+                    temp_result[i] = old_entry.value;
+                    result.results.push_back(old_entry.value);
+                    change_entry(command.key, old_entry.value, cur_timestamp, old_entry.lastWrite);
                 }
-
                 break;
             }
+
             case ALGO_ADD:
             case ALGO_SUB: {
                 idx_value_t r = value_from_command(command, temp_result);
                 temp_result[i] = r;
-                results.results.push_back(r);
+                result.results.push_back(r);
                 break;
             }
         }
     }
-    if(abort){ std::cout << "*********************************************\n";
-        return handle(transaction);
+
+    if(abort){
+        rollback(transaction, i, rollback_value_list, rollback_write_time_list);
+        result.isSuccess = false;
+        return result;
     }
 
-    for(TimestampEntry entry: tempEntries) {
-        this->database.set(entry.key, entry);
-    }
     return result;
 
 }

@@ -22,6 +22,12 @@
 #define TS_COMPARE_AND_SWAP_VALUE 0
 #define TS_COMPARE_AND_SWAP_LAST_READ 1
 #define TS_COMPARE_AND_SWAP_LAST_WRITE 2
+#define TS_COMPARE_AND_SWAP_LOCK 3
+
+
+#define TS_READ_VALUE 0
+#define TS_READ_LAST_READ 1
+#define TS_READ_LAST_WRITE 2
 
 
 
@@ -29,6 +35,10 @@ struct TimestampEntry{
     idx_value_t value;
     idx_value_t lastRead;
     idx_value_t lastWrite;
+    idx_value_t rollback_value;
+    idx_value_t rollback_lastRead;
+    idx_value_t rollback_lastWrite;
+
 };
 
 class TimestampDatabase{
@@ -88,6 +98,11 @@ private:
     bool pthread_fetch_and_add     (int mach_id, int type, idx_key_t key, idx_value_t* value);
 
     bool get_timestamp(idx_value_t* value);
+    bool get_entry(idx_key_t key, TimestampEntry* value);
+    bool change_entry(idx_key_t key, idx_value_t value, idx_value_t lastRead, idx_value_t lastWrite);
+    bool rollback(Transaction* transaction, int i, std::vector<idx_value_t> value_list,
+            std::vector<idx_value_t> write_time_list);
+
 };
 
 

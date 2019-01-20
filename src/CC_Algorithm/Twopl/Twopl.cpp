@@ -46,7 +46,7 @@ bool TwoplServer::recv(int* mach_id, int type, char* buf, int* sz){
 }
 
 
-bool TwoplServer::compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value){
+bool TwoplServer::compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value){
 #ifdef RDMA
     return rdma_compare_and_swap(mach_id, type, key, old_value, new_value);
 #else
@@ -58,7 +58,7 @@ bool TwoplServer::compare_and_swap  (int mach_id, int type, idx_key_t key, idx_v
 
 
 bool TwoplServer::rdma_read(int mach_id, int type, idx_key_t key, idx_value_t* value){
-    //*value =
+
     return true;
 }
 
