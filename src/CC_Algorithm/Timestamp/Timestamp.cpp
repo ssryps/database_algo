@@ -73,11 +73,13 @@ bool TimestampServer::rdma_write(int mach_id, int type, idx_key_t key, idx_value
     return true;
 }
 
-bool TimestampServer::rdma_send(int mach_id, int type, idx_key_t key, idx_value_t value) {
+bool TimestampServer::rdma_send(int mach_id, int type, char *buf, int sz) {
+
     return true;
 }
 
-bool TimestampServer::rdma_recv(int mach_id, int type, idx_key_t key, idx_value_t *value) {
+bool TimestampServer::rdma_recv(int *mach_id, int type, char *buf, int *sz) {
+
     return true;
 }
 
@@ -191,7 +193,20 @@ bool TimestampServer::init(int id, char **buf, int sz) {
 #endif
 
 int TimestampServer::run() {
+#ifdef TWO_SIDE
+    //    std::thread primitive_thread(w)
+    char request_i[1024 * 8];
+    while (true) {
+        memset(request_i, 0, sizeof(char) * 1024 * 8);
+        int mach_i, msg_sz;
+        recv(&mach_i, 0, request_i, &msg_sz);
+        Transaction* transaction = getTransactionFromBuffer(request_i, msg_sz);
+        this->handle(transaction);
+    }
+#else
+    return 0;
 
+#endif
 
 }
 
@@ -252,7 +267,21 @@ bool TimestampServer::rollback(Transaction *transaction, int lastpos, std::vecto
         Command command = transaction->commands[i];
         switch (command.operation) {
             case ALGO_WRITE: {
+                idx_value_t lock;
+                idx_key_t key = command.key;
+                while(true) {
+                    if(!read(get_machine_index(key), TS_READ_LOCK, key % MAX_DATA_PER_MACH, &lock))return false;
+                    if(lock == 0){
+                        if(compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key % MAX_DATA_PER_MACH, 0, 1))break;
+                    }
+                }
+                idx_value_t  old_value;
+                read(get_machine_index(key), TS_READ_LAST_WRITE, key % MAX_DATA_PER_MACH, &old_value);
+                if(value_list[i] == old_value){
+                    write(get_machine_index(key), TS_WRITE_VALUE, key % MAX_DATA_PER_MACH, value_list[i]);
+                }
 
+                compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key, 1, 0);
                 break;
             }
 
@@ -356,21 +385,21 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
 // TimestampEntryBatch's implementation is as below.
 // This is just a naive one using a vector to store all information
 // further improvement such as binary tree is highly possible
-
-TimestampDatabase::TimestampDatabase(char* buf){
-    this->table = reinterpret_cast<TimestampEntry*>(buf);
-}
-
-
-bool TimestampDatabase::get(idx_key_t key, TimestampEntry* entry){
-    memcpy(entry, this->table + key, sizeof(TimestampEntry));
-    return true;
-}
-
-
-bool TimestampDatabase::insert(idx_key_t key, TimestampEntry* entry) {
-    memcpy(this->table + key, entry, sizeof(TimestampEntry));
-    return true;
-}
-
-
+//
+//TimestampDatabase::TimestampDatabase(char* buf){
+//    this->table = reinterpret_cast<TimestampEntry*>(buf);
+//}
+//
+//
+//bool TimestampDatabase::get(idx_key_t key, TimestampEntry* entry){
+//    memcpy(entry, this->table + key, sizeof(TimestampEntry));
+//    return true;
+//}
+//
+//
+//bool TimestampDatabase::insert(idx_key_t key, TimestampEntry* entry) {
+//    memcpy(this->table + key, entry, sizeof(TimestampEntry));
+//    return true;
+//}
+//
+//

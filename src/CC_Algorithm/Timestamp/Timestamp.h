@@ -28,6 +28,13 @@
 #define TS_READ_VALUE 0
 #define TS_READ_LAST_READ 1
 #define TS_READ_LAST_WRITE 2
+#define TS_READ_LOCK 3
+
+#define TS_WRITE_VALUE 0
+#define TS_WRITE_LAST_READ 1
+#define TS_WRITE_LAST_WRITE 2
+#define TS_WRITE_LOCK 3
+
 
 
 
@@ -35,10 +42,12 @@ struct TimestampEntry{
     idx_value_t value;
     idx_value_t lastRead;
     idx_value_t lastWrite;
-    idx_value_t rollback_value;
-    idx_value_t rollback_lastRead;
-    idx_value_t rollback_lastWrite;
 
+#ifdef TWO_SIDE
+
+#else
+    idx_value_t lock;
+#endif
 };
 
 class TimestampDatabase{

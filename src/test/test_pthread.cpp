@@ -31,8 +31,9 @@ void* PthreadServer(void* args){
         }
 
         case ALGO_TIMESTAMP: {
-            TimestampServer* server = new TimestampServer;
-
+            TimestampServer *server = new TimestampServer;
+            server->init(info->id, info->thread_buf, SERVER_DATA_BUF_SIZE);
+            server->run();
             break;
         }
     }
