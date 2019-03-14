@@ -65,7 +65,7 @@ private:
 
     bool write             (int mach_id, int type, idx_key_t key, idx_value_t value);
     bool read              (int mach_id, int type, idx_key_t key, idx_value_t* value);
-    bool send              (int mach_id, int type, char* buf, int sz);
+    bool send_i(int mach_id, int type, char *buf, int sz, comm_identifer ident);
     bool recv              (int* mach_id, int type, char* buf, int* sz);
     bool compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
 

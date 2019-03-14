@@ -365,11 +365,11 @@ void rdma_test (
     memset(&qpia, 0, sizeof(qpia));
     qpia.send_cq = txcq;
     qpia.recv_cq = rxcq;
-    qpia.cap.max_send_wr  = DEPTH;	// max outstanding send requests
-    qpia.cap.max_recv_wr  = DEPTH;	// max outstanding recv requests
-    qpia.cap.max_send_sge = 1;	// max send scatter-gather elements
-    qpia.cap.max_recv_sge = 1;	// max recv scatter-gather elements
-    qpia.cap.max_inline_data = 0;	// max bytes of immediate data on send q
+    qpia.cap.max_send_wr  = DEPTH;	// max outstanding send_i requests
+    qpia.cap.max_recv_wr  = DEPTH;	// max outstanding recv_i requests
+    qpia.cap.max_send_sge = 1;	// max send_i scatter-gather elements
+    qpia.cap.max_recv_sge = 1;	// max recv_i scatter-gather elements
+    qpia.cap.max_inline_data = 0;	// max bytes of immediate data on send_i q
     qpia.qp_type = IBV_QPT_RC;	// RC, UC, UD, or XRC
     qpia.sq_sig_all = 0;		// only generate CQEs on requested WQEs
 

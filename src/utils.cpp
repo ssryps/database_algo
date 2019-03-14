@@ -3,10 +3,13 @@
 //
 #include "utils.h"
 
+bool random_flag = true;
+
+
 idx_value_t value_from_command(Command command, idx_value_t* temp_result){
     idx_value_t result = 0;
 
-    if(command.operation == WRITE) {
+    if(command.operation == ALGO_WRITE) {
         if (command.read_result_index_1 < 0)result += command.imme_1;
         else result += temp_result[command.read_result_index_1];
     }

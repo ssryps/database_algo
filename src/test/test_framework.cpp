@@ -2,22 +2,24 @@
 #include "test_utils.hpp"
 #include <cstdlib>
 #include <CC_Algorithm/Twopl/Twopl.h>
-#include <CC_Algorithm/OCC/Occ.h>
+#include <CC_Algorithm/Occ/Occ.h>
 #include <CC_Algorithm/Timestamp/Timestamp.h>
 #include <thread>
-
+#include <atomic>
 
 
 struct ServerThreadInfo{
     int server_type; // 0 - 3 for twopl, occ, mvcc, timestamp
     int id;
     char** thread_buf;
+    std::atomic<int>* timestamp_generator;
 };
 
 struct ClientThreadInfo {
     int server_type;
     int id;
     char** server_buf;
+    std::atomic<int>* timestamp_generator;
 };
 
 void* PthreadServer(void* args){
@@ -32,7 +34,7 @@ void* PthreadServer(void* args){
 
         case ALGO_TIMESTAMP: {
             TimestampServer *server = new TimestampServer;
-            server->init(info->id, info->thread_buf, SERVER_DATA_BUF_SIZE);
+            server->init(info->id, info->thread_buf, SERVER_DATA_BUF_SIZE, info->timestamp_generator);
             server->run();
             break;
         }
@@ -62,6 +64,42 @@ void* PthreadClient(void* args){
 
             break;
         }
+
+        case ALGO_TIMESTAMP: {
+            #ifdef TWO_SIDE
+                TimestampServer* server = new TimestampServer;
+                server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE,
+                             info->timestamp_generator);
+                Transaction *transaction = generataTransaction(info->id);
+                TransactionResult result = server->handle(transaction);
+                int offset = 0;
+                char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
+                offset += sprintf(output_buf + offset, "thread %d's result: %s\n",info->id, result.isSuccess? "success": "abort");
+                for (auto i : result.results)
+                    offset += sprintf(output_buf + offset, "%i\n", i);
+                printf(output_buf);
+
+            #else
+                TimestampServer* server = new TimestampServer;
+                server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE,
+                        info->timestamp_generator);
+                Transaction *transaction = generataTransaction(info->id);
+                TransactionResult result = server->handle(transaction);
+                int offset = 0;
+                char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
+                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.isSuccess);
+                for (auto i : result.results)
+                    offset += sprintf(output_buf + offset, "%i\n", i);
+                printf(output_buf);
+
+            #endif
+            break;
+        }
+
+
+        default:{
+            assert(false);
+        }
     }
 }
 
@@ -81,8 +119,11 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
     char** global_buf = new char*[SERVER_THREAD_NUM];
     for(int i = 0; i < SERVER_THREAD_NUM; i++){
         global_buf[i] = new char[SERVER_DATA_BUF_SIZE];
+        memset(global_buf[i], 0, sizeof(char) * SERVER_DATA_BUF_SIZE);
 //        trans_msg[i] = new char[MEG_BUF_SIZE];
     }
+
+    std::atomic<int>* timestamp_generator = new std::atomic<int>(0);
 
     if(algo_name == ALGO_TWOPL) {
         for(int i = 0; i < SERVER_THREAD_NUM; i++){
@@ -92,7 +133,7 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
         }
         for(int i = 0; i < CLIENT_THREAD_NUM; i++){
             client_info[i].server_type = ALGO_TWOPL;
-            client_info[i].id = -i;
+            client_info[i].id = ~i;
             client_info[i].server_buf = global_buf;
         }
     } else if(algo_name == ALGO_TIMESTAMP) {
@@ -100,11 +141,13 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
             server_info[i].server_type = ALGO_TIMESTAMP;
             server_info[i].id = i;
             server_info[i].thread_buf = global_buf;
+            server_info[i].timestamp_generator = timestamp_generator;
         }
         for(int i = 0; i < CLIENT_THREAD_NUM; i++){
             client_info[i].server_type = ALGO_TIMESTAMP;
-            client_info[i].id = -i;
+            client_info[i].id = ~i;
             client_info[i].server_buf = global_buf;
+            client_info[i].timestamp_generator = timestamp_generator;
         }
 
     } else if(algo_name == ALGO_MVCC) {

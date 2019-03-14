@@ -10,6 +10,9 @@
 #include <cstring>
 #include "defines.h"
 
+#define SOCKET_TRANCTION 9000
+#define SOCKET_OPERATION 9001
+#define MAXLINE 4096
 
 
 enum RC {OK, ABORT, COMMIT, WAIT, ERROR};
@@ -51,8 +54,9 @@ int get_machine_index(idx_key_t key);
 const int MAX_DATA_PER_MACH = 1000000;
 
 const int SERVER_THREAD_NUM = 4;
-const int CLIENT_THREAD_NUM = 8;
+const int CLIENT_THREAD_NUM = 2;
 const int SERVER_DATA_BUF_SIZE = 1024 * 1024 * 100;
 const int MEG_BUF_SIZE = 1024 * 10;
+
 
 #endif //RDMA_MEASURE_UTILS_H

@@ -6,15 +6,15 @@ set (CMAKE_WARN_DEPRECATED 0)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/)
 
-#set(TEST1 rdma_lib_test)
 
-aux_source_directory(src DIR_SRCS)
+enable_testing()
+find_package(GTest REQUIRED)
 
 include_directories(
 		src/
-		src/test/test_pthread.cpp
+		src/test/test_framework.cpp
 		src/Storage/
-		src/CC_Algorithm/OCC/
+		src/CC_Algorithm/Occ/
 		src/CC_Algorithm/Twopl/
 		src/CC_Algorithm/Timestamp/
 #		lib/Network/
@@ -29,17 +29,23 @@ add_executable(main
 #		src/test/test_utils.hpp
 		src/CC_Algorithm/CCServer.hpp
 		src/CC_Algorithm/Twopl/Twopl.cpp
+		src/CC_Algorithm/Timestamp/Timestamp.cpp
+		src/CC_Algorithm/Occ/Occ.cpp
 		src/utils.cpp)
+target_link_libraries(main ${addition_lib})
 
-TARGET_LINK_LIBRARIES(main ${addition_lib})
 
-#add_executable(${TEST1} test/${TEST1}.cpp)
-
-#TARGET_LINK_LIBRARIES(${TEST1} ${my_lib})
+add_executable(ALGO_TEST
+		src/test/test_main.cpp
+		src/test/test_timestamp.cpp
+		src/CC_Algorithm/CCServer.hpp
+		src/CC_Algorithm/Twopl/Twopl.cpp
+		src/CC_Algorithm/Timestamp/Timestamp.cpp
+		src/CC_Algorithm/Occ/Occ.cpp
+		src/utils.cpp)
+target_link_libraries(ALGO_TEST GTest::GTest GTest::Main)
 
 
 add_compile_definitions(DEBUG)
-
-add_compile_definitions(NO_RANDOM)
 
 #add_compile_definitions(TWO_SIDE)

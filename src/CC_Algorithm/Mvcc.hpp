@@ -13,6 +13,9 @@
 #include "utils.h"
 #include "defines.h"
 #include "index_hashtable.hpp"
+#include "CCServer.hpp"
+
+
 
 struct MvccEntry {
     long id;
@@ -23,7 +26,7 @@ struct MvccEntry {
 
 static std::atomic<int> cur(0);
 
-class MvccServer : public Server{
+class MvccServer : public CCServer{
 public:
     MvccServer(){}
     bool init(int id, char* buf, int buf_sz){

@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <getopt.h>
-#include "test/test_pthread.cpp"
+#include "test/test_framework.cpp"
 //#include "test/test_rdma.cpp"
 
 int main(int argc, char *argv[]) {

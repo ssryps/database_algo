@@ -1,9 +1,22 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#include <sys/socket.h>
+
 typedef uint64_t idx_key_t; // key id for index
 typedef int64_t idx_value_t;
-typedef int 	 idx_index_t; // for mvcc : key ---> index ---> value
+typedef int idx_index_t;
+typedef int idx_trans_t;
+
+
+#ifdef RDMA
+
+#else
+    typedef int comm_identifer;
+    typedef sockaddr comm_addr;
+    typedef socklen_t comm_length;
+#endif
+
 
 enum Data_type {DT_table, DT_page, DT_row };
 

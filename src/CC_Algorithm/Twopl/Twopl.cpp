@@ -3,9 +3,13 @@
 //
 
 #include <assert.h>
-#include <test/test_utils.hpp>
+//#include <test/test_utils.hpp>
 #include <thread>
 #include "Twopl.h"
+
+extern Transaction* getTransactionFromBuffer(char* buf, size_t length);
+
+
 
 bool TwoplServer::write(int mach_id, int type, idx_key_t key, idx_value_t entry){
 #ifdef RDMA
@@ -27,7 +31,7 @@ bool TwoplServer::read(int mach_id, int type, idx_key_t key, idx_value_t* entry)
 
 
 // type 1 for lock, type 2 for unlock, type 3 for put, type 4 for get
-bool TwoplServer::send(int mach_id, int type, char* buf, int sz){
+bool TwoplServer::send_i(int mach_id, int type, char *buf, int sz, comm_identifer ident) {
 #ifdef RDMA
     return rdma_send(mach_id, type, key, value);
 #else
@@ -66,11 +70,11 @@ bool TwoplServer::rdma_write(int mach_id, int type, idx_key_t key, idx_value_t v
     return true;
 }
 
-bool TwoplServer::rdma_send(int mach_id, int type, idx_key_t key, idx_value_t value) {
+bool TwoplServer::rdma_send(int mach_id, int type, char* buf, int sz){
     return true;
 }
 
-bool TwoplServer::rdma_recv(int mach_id, int type, idx_key_t key, idx_value_t *value) {
+bool TwoplServer::rdma_recv(int* mach_id, int type, char* buf, int* sz) {
     return true;
 }
 
@@ -210,7 +214,7 @@ TransactionResult TwoplServer::handle(Transaction* transaction) {
     }
 
     for (Command command : transaction->commands) { keys.insert(command.key); }
-    for(auto i = keys.begin(); i != keys.end(); i++){ lock(*i); }
+    for (auto i = keys.begin(); i != keys.end(); i++){ lock(*i); }
 
     idx_value_t *temp_result = new idx_value_t[transaction->commands.size()];
     for (int i = 0; i < transaction->commands.size(); i++) {
@@ -255,8 +259,8 @@ int TwoplServer::run() {
         memset(request_i, 0, sizeof(char) * 1024 * 8);
         int mach_i, msg_sz;
         recv(&mach_i, 0, request_i, &msg_sz);
-        Transaction* transaction = getTransactionFromBuffer(request_i, msg_sz);
-        this->handle(transaction);
+//        Transaction* transaction = getTransactionFromBuffer(request_i, msg_sz);
+//        this->handle(transaction);
     }
 #else
     return 0;
