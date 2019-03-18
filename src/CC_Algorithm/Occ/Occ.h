@@ -11,6 +11,9 @@
 
 #define OCC_READ_SERVER_TXN_NUM 0
 #define OCC_READ_SERVER_TXN_BUF 1
+#define OCC_READ_TXN_NUM 2
+#define OCC_READ_TXN_BUF 3
+
 
 
 #define OCC_READ_PHASE 0
@@ -24,8 +27,13 @@
 #include "../CCServer.hpp"
 #include <atomic>
 #include <set>
+#include <algorithm>
 
 #define OCC_SEGMENT_SIZE (this->server_id == 0 ? this->buf_sz / 4 : this->buf_sz / 3)
+
+typedef int occ_idx_num_t ;
+typedef int occ_time_t;
+
 
 struct OccDataEntry {
     idx_value_t value;
@@ -50,7 +58,7 @@ struct OccDataEntry {
 
 
 struct OccTxnEntry {
-    int endtime;
+    occ_time_t endtime;
     int write_begin_ptr;
     int write_end_ptr;
 };
@@ -68,9 +76,9 @@ struct OccTxnEntry {
 #define OCC_TXN_BUF(id, buf_list, sz) ({   \
     char* buf;                     \
     if(id == 0) {                  \
-        buf = buf_list[id] + sz / 4 + sizeof(idx_value_t);        \
+        buf = buf_list[id] + sz / 4 + sizeof(occ_idx_num_t);        \
     } else {                       \
-        buf = buf_list[id] + sz / 3 + sizeof(idx_value_t);        \
+        buf = buf_list[id] + sz / 3 + sizeof(occ_idx_num_t);        \
     }                              \
     buf;                           \
 })
@@ -83,9 +91,9 @@ struct OccKeyEntry {
 #define OCC_KEY_BUF(id, buf_list, sz) ({   \
     char* buf;                     \
     if(id == 0) {                  \
-        buf = buf_list[id] + sz * 2 / 4 + sizeof(idx_value_t);        \
+        buf = buf_list[id] + sz * 2 / 4 + sizeof(occ_idx_num_t);        \
     } else {                       \
-        buf = buf_list[id] + sz * 2 / 3 + sizeof(idx_value_t);        \
+        buf = buf_list[id] + sz * 2 / 3 + sizeof(occ_idx_num_t);        \
     }                              \
     buf;                           \
 })
@@ -95,8 +103,8 @@ struct OccServerTxnEntry {
     idx_value_t ts;
     int mach_id;
 
-    idx_value_t start_time;
-    idx_value_t end_time;
+    occ_time_t start_time;
+    occ_time_t end_time;
 
 };
 
@@ -115,7 +123,7 @@ struct OccServerTxnEntry {
 #define OCC_SERVER_TXN_BUF(id, buf_list, sz) ({   \
     char* buf;                     \
     if(id == 0) {                  \
-        buf = buf_list[id] + sz * 3 / 4 + sizeof(idx_value_t);        \
+        buf = buf_list[id] + sz * 3 / 4 + sizeof(occ_idx_num_t);        \
     } else {                       \
         assert(false);             \
     }                              \
@@ -146,16 +154,16 @@ private:
 //    int listenfd, connfd;
 #endif
 
-    bool write             (int mach_id, int type, idx_key_t key, idx_value_t value);
-    bool read              (int mach_id, int type, idx_key_t key, idx_value_t* value);
+    bool write             (int mach_id, int type, idx_key_t key, char* value, int sz);
+    bool read(int mach_id, int type, idx_key_t key, char *value, int *sz);
     bool send_i(int mach_id, int type, char *buf, int sz, comm_identifer ident);
     bool recv_i(int *mach_id, int *type, char **buf, int *sz, comm_identifer ident);
     bool compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
     bool fetch_and_add     (int mach_id, int type, idx_key_t key, idx_value_t* value);
 
 
-    bool rdma_write             (int mach_id, int type, idx_key_t key, idx_value_t entry);
-    bool rdma_read              (int mach_id, int type, idx_key_t key, idx_value_t* entry);
+    bool rdma_write             (int mach_id, int type, idx_key_t key, char* value, int sz);
+    bool rdma_read              (int mach_id, int type, idx_key_t key, char* value, int* sz);
     bool rdma_send(int mach_id, int type, char *buf, int sz, comm_identifer ident);
     bool rdma_recv(int *mach_id, int *type, char **buf, int *sz, comm_identifer ident);
     bool rdma_compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
@@ -163,8 +171,8 @@ private:
 
     //  bool rdma_fetch_and_add     (int mach_id, int type, idx_key_t key);
 
-    bool pthread_write          (int mach_id, int type, idx_key_t key, idx_value_t entry);
-    bool pthread_read           (int mach_id, int type, idx_key_t key, idx_value_t* entry);
+    bool pthread_write          (int mach_id, int type, idx_key_t key, char* value, int sz);
+    bool pthread_read           (int mach_id, int type, idx_key_t key, char* value, int* sz);
     bool pthread_send(int mach_id, int type, char *buf, int sz, comm_identifer ident);
     bool pthread_recv(int *mach_id, int *type, char **buf, int *sz, comm_identifer ident);
     bool pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
@@ -174,13 +182,22 @@ private:
     bool get_entry(idx_key_t key, OccDataEntry *value, comm_identifer ident);
     bool get_timestamp(idx_value_t *value, int stage);
 
-    bool store_transaction_info(idx_value_t read_time, std::set<idx_key_t>* read_set, std::set<idx_key_t>* write_set);
+    bool store_transaction_info(occ_time_t read_time, std::set<idx_key_t>* read_set, std::set<idx_key_t>* write_set);
 
-    bool get_check_trans(idx_value_t read_time, idx_value_t validation_time, std::vector<int>* mach_set_peer,
-            std::vector<idx_value_t>* start_time_set_peer);
+    bool get_check_trans(occ_time_t read_time, occ_time_t validation_time, std::vector<int>* mach_set_peer,
+            std::vector<occ_time_t >* start_time_set_peer);
+
+    bool get_trans_info(int peer, occ_time_t start_time_peer, occ_time_t *end_time_peer, std::set<idx_key_t >* write_set_peer);
+
 };
 
 void* timestamp_generator_thread(void* buf);
+
+static inline bool common_elements(std::set<idx_key_t> set1, std::set<idx_key_t> set2){
+    auto it = std::find_first_of(set1.begin(), set1.end(), set2.begin(), set2.end());
+
+    return it != set1.end();
+}
 
 
 #endif //RDMA_MEASURE_OCC_H

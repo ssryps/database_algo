@@ -26,14 +26,13 @@
 #define TS_COMPARE_AND_SWAP_LOCK 3
 
 
-#define TS_READ_VALUE 0
+#define TS_READ_ALL_VALUE 0
 #define TS_READ_LAST_READ 1
 #define TS_READ_LAST_WRITE 2
 
 
 #define TS_WRITE_ALL_VALUE 0
-#define TS_WRITE_LAST_READ 1
-#define TS_WRITE_LAST_WRITE 2
+#define TS_WRITE_LAST_WRITE_AND_VALUE 1
 
 
 #define TS_RECV_TRANSACTION 0
@@ -99,7 +98,7 @@ private:
 #endif
 
     bool write             (int mach_id, int type, idx_key_t key, char* value, int sz);
-    bool read              (int mach_id, int type, idx_key_t key, idx_value_t* value);
+    bool read(int mach_id, int type, idx_key_t key, char *value, int *sz);
     bool send_i(int mach_id, int type, char *buf, int sz, comm_identifer ident);
     bool recv_i(int *mach_id, int *type, char **buf, int *sz, comm_identifer ident);
     bool compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
@@ -107,7 +106,7 @@ private:
 
 
     bool rdma_write             (int mach_id, int type, idx_key_t key, char* value, int sz);
-    bool rdma_read              (int mach_id, int type, idx_key_t key, idx_value_t* entry);
+    bool rdma_read              (int mach_id, int type, idx_key_t key, char* value, int* sz);
     bool rdma_send(int mach_id, int type, char *buf, int sz, comm_identifer ident);
     bool rdma_recv(int *mach_id, int *type, char **buf, int *sz, comm_identifer ident);
     bool rdma_compare_and_swap  (int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
@@ -116,7 +115,7 @@ private:
     //  bool rdma_fetch_and_add     (int mach_id, int type, idx_key_t key);
 
     bool pthread_write          (int mach_id, int type, idx_key_t key, char* value, int sz);
-    bool pthread_read           (int mach_id, int type, idx_key_t key, idx_value_t* entry);
+    bool pthread_read           (int mach_id, int type, idx_key_t key, char* value, int* sz);
     bool pthread_send(int mach_id, int type, char *buf, int sz, comm_identifer ident);
     bool pthread_recv(int *mach_id, int *type, char **buf, int *sz, comm_identifer ident);
     bool pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);

@@ -12,21 +12,21 @@
 OccServer::OccServer() {}
 
 
-bool OccServer::write(int mach_id, int type, idx_key_t key, idx_value_t entry){
+bool OccServer::write(int mach_id, int type, idx_key_t key, char* value, int sz){
 #ifdef RDMA
     return rdma_write(mach_id, type, key, entry);
 #else
-    return pthread_write(mach_id, type, key, entry);
+    return pthread_write(mach_id, type, key, value, sz);
 #endif
 }
 
 
-bool OccServer::read(int mach_id, int type, idx_key_t key, idx_value_t* entry){
+bool OccServer::read(int mach_id, int type, idx_key_t key, char *value, int *sz){
 #ifdef RDMA
 
     return rdma_read(mach_id, type, key, entry);
 #else
-    return pthread_read(mach_id, type, key, entry);
+    return pthread_read(mach_id, type, key, value, sz);
 #endif
 }
 
@@ -68,12 +68,12 @@ bool OccServer::fetch_and_add(int mach_id, int type, idx_key_t key, idx_value_t*
 }
 
 
-bool OccServer::rdma_read(int mach_id, int type, idx_key_t key, idx_value_t* value){
+bool OccServer::rdma_read(int mach_id, int type, idx_key_t key, char* value, int sz){
     //*value =
     return true;
 }
 
-bool OccServer::rdma_write(int mach_id, int type, idx_key_t key, idx_value_t value){
+bool OccServer::rdma_write(int mach_id, int type, idx_key_t key, char* value, int sz){
     return true;
 }
 
@@ -95,27 +95,44 @@ bool OccServer::rdma_fetch_and_add(int mach_id, int type, idx_key_t key, idx_val
     return true;
 }
 
-bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, idx_value_t* value) {
+bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, char* value, int* sz) {
     switch (type) {
         case OCC_READ_SERVER_TXN_NUM: {
-            *value = *((idx_value_t *)OCC_SERVER_TXN_NUM(mach_id, this->global_buf, this->buf_sz));
+            occ_idx_num_t *num = (occ_idx_num_t *)OCC_SERVER_TXN_NUM(mach_id, this->global_buf, this->buf_sz);
+
+            std::memcpy(value, num, sizeof(occ_idx_num_t));
+            (*sz) = sizeof(occ_idx_num_t);
             break;
         }
         case OCC_READ_SERVER_TXN_BUF: {
-            *value = *((idx_value_t *)OCC_SERVER_TXN_BUF(mach_id, this->global_buf, this->buf_sz));
+            OccServerTxnEntry* server_txn_buf = (OccServerTxnEntry *)OCC_SERVER_TXN_BUF(mach_id, this->global_buf, this->buf_sz);
+            std::memcpy(value, &(server_txn_buf[key]), sizeof(OccServerTxnEntry));
+
+            (*sz) = sizeof(OccServerTxnEntry);
             break;
         }
-        case TS_READ_LAST_WRITE: {
-            *value = des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite;
+        case OCC_READ_TXN_NUM: {
+            occ_idx_num_t *num = (occ_idx_num_t *)OCC_TXN_NUM(mach_id, this->global_buf, this->buf_sz);
+
+            std::memcpy(value, num, sizeof(occ_idx_num_t));
+            (*sz) = sizeof(occ_idx_num_t);
             break;
         }
+        case OCC_READ_TXN_BUF: {
+            OccTxnEntry* server_txn_buf = (OccTxnEntry *)OCC_TXN_BUF(mach_id, this->global_buf, this->buf_sz);
+            std::memcpy(value, &(server_txn_buf[key]), sizeof(OccTxnEntry));
+
+            (*sz) = sizeof(OccTxnEntry);
+            break;
+        }
+
 #ifdef TWO_SIDE
 
 #else
-        case TS_READ_LOCK: {
-            *value = des_buf->entries[key % MAX_DATA_PER_MACH].lock;
-            break;
-        }
+//        case TS_READ_LOCK: {
+//            *value = des_buf->entries[key % MAX_DATA_PER_MACH].lock;
+//            break;
+//        }
 
 #endif
         default:{
@@ -126,7 +143,7 @@ bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, idx_value_t* 
 }
 
 
-bool OccServer::pthread_write(int mach_id, int type, idx_key_t key, idx_value_t value) {
+bool OccServer::pthread_write(int mach_id, int type, idx_key_t key, char* value, int sz) {
 //    TimestampDataBuf* des_buf = reinterpret_cast<TimestampDataBuf*>(this->global_buf[mach_id]);
 //    switch (type) {
 //        case TS_WRITE_VALUE: {
@@ -284,10 +301,12 @@ bool OccServer::get_timestamp(idx_value_t *value, int stage) {
     return fetch_and_add(0, OCC_FEACH_AND_ADD_TIMESTAMP, 0, value);
 }
 
-bool OccServer::store_transaction_info(idx_value_t read_time, std::set<idx_key_t> *read_set,
+bool OccServer::store_transaction_info(occ_time_t read_time, std::set<idx_key_t> *read_set,
                                        std::set<idx_key_t> *write_set) {
-    int *txn_idx = (int*)OCC_TXN_NUM(this->server_id, this->global_buf, this->buf_sz);
-    OccTxnEntry* txn_list = (OccTxnEntry*)OCC_TXN_BUF(this->server_id, this->global_buf, this->buf_sz);
+    occ_idx_num_t *txn_idx = (occ_idx_num_t *)OCC_TXN_NUM(this->server_id,
+            this->global_buf, this->buf_sz);
+    OccTxnEntry *txn_list = (OccTxnEntry*)OCC_TXN_BUF(this->server_id,
+            this->global_buf, this->buf_sz);
 
     (txn_list[read_time]).write_begin_ptr = (*txn_idx);
 
@@ -309,14 +328,19 @@ bool OccServer::get_check_trans(idx_value_t read_time, idx_value_t validation_ti
 #else
 //    int*  txn_idx = (int*)OCC_SERVER_TXN_NUM(0, this->global_buf, this->buf_sz);
 //    OccServerTxnEntry* txn_buf = (OccServerTxnEntry*)OCC_SERVER_TXN_BUF(0, this->global_buf, this->buf_sz);
-    idx_value_t txn_idx;
-    read(0, OCC_READ_SERVER_TXN_NUM, 0, &txn_idx);
+    occ_idx_num_t txn_idx;
+    int idx_sz;
+    read(0, OCC_READ_SERVER_TXN_NUM, 0, (char*)&txn_idx, &idx_sz);
+    assert(idx_sz == sizeof(occ_idx_num_t));
 
 
-    for(int i = 0; i < txn_idx; i++) {
-        auto txn = (txn_buf[txn_idx]);
-        if()
-        if( txn.end_time == -1 || txn.end_time > read_time ) {
+    for(int i = txn_idx - 1; i >= 0; i--) {
+        OccServerTxnEntry txn;
+        int txn_sz;
+        read(0, OCC_READ_SERVER_TXN_BUF, i, (char*)&txn, &txn_sz);
+        assert(txn_sz == sizeof(OccServerTxnEntry));
+        if(txn.ts > validation_time) continue;
+        if(txn.end_time == -1 || txn.end_time > read_time) {
             mach_set_peer->push_back(txn.mach_id);
             start_time_set_peer->push_back(txn.start_time);
         }
@@ -325,6 +349,31 @@ bool OccServer::get_check_trans(idx_value_t read_time, idx_value_t validation_ti
 
 }
 
+bool OccServer::get_trans_info(int peer, int start_time_peer, int *end_time_peer, std::set<int> *write_set_peer) {
+#ifdef TWO_SIDE
+
+#else
+    occ_idx_num_t txn_idx;
+    int sz;
+    read(peer, OCC_READ_TXN_NUM, 0, (char*)&txn_idx, &sz);
+    assert(sz == sizeof(occ_idx_num_t));
+
+    for(int i = txn_idx - 1; i >= 0; i--) {
+        OccTxnEntry txn_entry;
+        int sz;
+        read(peer, OCC_READ_TXN_BUF, start_time_peer, (char *)&txn_entry, &sz);
+        assert(sz == sizeof(OccTxnEntry));
+
+        tx
+
+        int beg = txn_entry.write_begin_ptr, ed = txn_entry.write_end_ptr;
+        for(int j = beg; j != ed; j ++, j %= (OCC_SEGMENT_SIZE / sizeof(OccTxnEntry))){
+
+        }
+    }
+
+#endif
+}
 
 TransactionResult OccServer::handle(Transaction* transaction){
     TransactionResult result;
@@ -411,10 +460,10 @@ TransactionResult OccServer::handle(Transaction* transaction){
     //      2. ts < this.ts
     // return
     //      1. mach_set_peer : the machine containing current transaction
-    //      2.
+    //      2. start_time_set_peer : start time
 
     std::vector<int> mach_set_peer;
-    std::vector<idx_value_t> start_time_set_peer;
+    std::vector<occ_time_t> start_time_set_peer;
 
     ok = get_check_trans(read_time, validation_time, &mach_set_peer, &start_time_set_peer);
 
@@ -422,7 +471,7 @@ TransactionResult OccServer::handle(Transaction* transaction){
     bool abort = false;
     for(int i = 0; i < mach_set_peer.size(); i++){
         int mach_peer = mach_set_peer[i];
-        idx_value_t start_time_peer = start_time_set_peer[i], end_time_peer;
+        occ_time_t start_time_peer = start_time_set_peer[i], end_time_peer;
         std::set<idx_key_t> write_set_peer;
 
         get_trans_info(mach_peer, start_time_peer, &end_time_peer, &write_set_peer);

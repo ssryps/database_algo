@@ -27,7 +27,7 @@ protected:
 
 
     virtual bool write  (int mach_id, int type, idx_key_t key, char* value, int sz){}
-    virtual bool read   (int mach_id, int type, idx_key_t key, char** value, int sz){}
+    virtual bool read(int mach_id, int type, idx_key_t key, char *value, int *sz){}
     virtual bool send_i(int mach_id, int type, char *buf, int sz, comm_identifer ident) {}
     virtual bool recv_i(int *mach_id, int *type, char **buf, int *sz, comm_identifer ident) {}
     virtual bool compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value){}

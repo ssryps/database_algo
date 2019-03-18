@@ -22,12 +22,12 @@ bool TimestampServer::write(int mach_id, int type, idx_key_t key, char* value, i
 }
 
 
-bool TimestampServer::read(int mach_id, int type, idx_key_t key, idx_value_t* entry){
+bool TimestampServer::read(int mach_id, int type, idx_key_t key, char *value, int *sz){
 #ifdef RDMA
 
     return rdma_read(mach_id, type, key, entry);
 #else
-    return pthread_read(mach_id, type, key, entry);
+    return pthread_read(mach_id, type, key, value, sz);
 #endif
 }
 
@@ -69,7 +69,7 @@ bool TimestampServer::fetch_and_add(int mach_id, int type, idx_key_t key, idx_va
 }
 
 
-bool TimestampServer::rdma_read(int mach_id, int type, idx_key_t key, idx_value_t* value){
+bool TimestampServer::rdma_read(int mach_id, int type, idx_key_t key, char* value, int* sz){
     //*value =
     return true;
 }
@@ -96,26 +96,32 @@ bool TimestampServer::rdma_fetch_and_add(int mach_id, int type, idx_key_t key, i
     return true;
 }
 
-bool TimestampServer::pthread_read(int mach_id, int type, idx_key_t key, idx_value_t* value) {
+bool TimestampServer::pthread_read(int mach_id, int type, idx_key_t key, char* value, int* sz) {
     TimestampDataBuf* des_buf = reinterpret_cast<TimestampDataBuf*>(this->global_buf[mach_id]);
     switch (type) {
-        case TS_READ_VALUE: {
-            *value = des_buf->entries[key % MAX_DATA_PER_MACH].value;
+        case TS_READ_ALL_VALUE: {
+            TimestampEntry* entry = (TimestampEntry*) value;
+            entry->value = des_buf->entries[key % MAX_DATA_PER_MACH].value;
+            entry->lastRead = des_buf->entries[key % MAX_DATA_PER_MACH].lastRead;
+            entry->lastWrite = des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite;
+            (*sz) = sizeof(TimestampEntry);
             break;
         }
-        case TS_READ_LAST_READ: {
-            *value = des_buf->entries[key % MAX_DATA_PER_MACH].lastRead;
-            break;
-        }
+
         case TS_READ_LAST_WRITE: {
-            *value = des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite;
+            idx_value_t *v = (idx_value_t *)value;
+            (*v) = des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite;
+            (*sz) = sizeof(idx_value_t);
             break;
         }
+
 #ifdef TWO_SIDE
 
 #else
         case TS_READ_LOCK: {
-            *value = des_buf->entries[key % MAX_DATA_PER_MACH].lock;
+            idx_value_t *v = (idx_value_t*) value;
+            *v = des_buf->entries[key % MAX_DATA_PER_MACH].lock;
+            (*sz) = sizeof(idx_value_t);
             break;
         }
 
@@ -131,23 +137,28 @@ bool TimestampServer::pthread_read(int mach_id, int type, idx_key_t key, idx_val
 bool TimestampServer::pthread_write(int mach_id, int type, idx_key_t key, char* value, int sz) {
     TimestampDataBuf* des_buf = reinterpret_cast<TimestampDataBuf*>(this->global_buf[mach_id]);
     switch (type) {
-        case TS_WRITE_VALUE: {
-            des_buf->entries[key % MAX_DATA_PER_MACH].value = value;
+        case TS_WRITE_ALL_VALUE: {
+            TimestampEntry *entry = (TimestampEntry *)value;
+            des_buf->entries[key % MAX_DATA_PER_MACH].value = entry->value;
+            des_buf->entries[key % MAX_DATA_PER_MACH].lastRead = entry->lastRead;
+            des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite = entry->lastWrite;
             break;
         }
-        case TS_WRITE_LAST_READ: {
-            des_buf->entries[key % MAX_DATA_PER_MACH].lastRead = value;
+
+
+        case TS_WRITE_LAST_WRITE_AND_VALUE: {
+            TimestampEntry *entry = (TimestampEntry *)value;
+            des_buf->entries[key % MAX_DATA_PER_MACH].value = entry->value;
+            des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite = entry->lastWrite;
             break;
         }
-        case TS_WRITE_LAST_WRITE: {
-            des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite = value;
-            break;
-        }
+
 #ifdef TWO_SIDE
 
 #else
         case TS_WRITE_LOCK: {
-            des_buf->entries[key % MAX_DATA_PER_MACH].lock = value;
+            idx_value_t *v = (idx_value_t*) value;
+            des_buf->entries[key % MAX_DATA_PER_MACH].lock = (*v);
             break;
         }
 #endif
@@ -404,30 +415,19 @@ bool TimestampServer::get_entry(idx_key_t key, TimestampEntry *value, comm_ident
 #else
     bool ok;
 
+    int sz1;
+
     idx_value_t lock;
     while(true) {
-        if(!read(get_machine_index(key), TS_READ_LOCK, key % MAX_DATA_PER_MACH, &lock))return false;
+        if(!read(get_machine_index(key), TS_READ_LOCK, key % MAX_DATA_PER_MACH, (char*)&lock, &sz1))return false;
         if(lock == 0){
             if(compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key % MAX_DATA_PER_MACH, 0, 1))break;
         }
     }
 
 
-    ok = read(get_machine_index(key), TS_READ_VALUE, key, &(value->value));
-    if(!ok){
-        compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key, 1, 0);
-        return false;
-    }
-
-
-    ok = read(get_machine_index(key), TS_READ_LAST_READ, key, &(value->lastRead));
-    if(!ok){
-        compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key, 1, 0);
-        return false;
-    }
-
-
-    ok = read(get_machine_index(key), TS_READ_LAST_WRITE, key, &(value->lastWrite));
+    int sz2;
+    ok = read(get_machine_index(key), TS_READ_ALL_VALUE, key, (char*)value, &sz2);
     if(!ok){
         compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key, 1, 0);
         return false;
@@ -469,7 +469,8 @@ bool TimestampServer::write_entry(idx_key_t key, idx_value_t value, idx_value_t 
 
     idx_value_t lock;
     while(true) {
-        if(!read(get_machine_index(key), TS_READ_LOCK, key % MAX_DATA_PER_MACH, &lock))return false;
+        int sz;
+        if(!read(get_machine_index(key), TS_READ_LOCK, key % MAX_DATA_PER_MACH, (char*)&lock, &sz))return false;
         if(lock == 0){
             if(compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key % MAX_DATA_PER_MACH, 0, 1))break;
         }
@@ -529,16 +530,22 @@ bool TimestampServer::rollback(Transaction *transaction, int lastpos, std::vecto
                 idx_value_t lock;
                 idx_key_t key = command.key;
                 while(true) {
-                    if(!read(get_machine_index(key), TS_READ_LOCK, key % MAX_DATA_PER_MACH, &lock))return false;
+                    int sz;
+                    if(!read(get_machine_index(key), TS_READ_LOCK, key % MAX_DATA_PER_MACH, (char*)&lock, &sz))return false;
                     if(lock == 0){
                         if(compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key % MAX_DATA_PER_MACH, 0, 1))break;
                     }
                 }
                 idx_value_t  old_value;
-                read(get_machine_index(key), TS_READ_LAST_WRITE, key % MAX_DATA_PER_MACH, &old_value);
+                int sz;
+                read(get_machine_index(key), TS_READ_LAST_WRITE, key % MAX_DATA_PER_MACH, (char*)&old_value, &sz);
                 if(value_list[i] == old_value){
-                    write(get_machine_index(key), TS_WRITE_VALUE, key % MAX_DATA_PER_MACH, value_list[i]);
-                    write(get_machine_index(key), TS_WRITE_LAST_WRITE, key % MAX_DATA_PER_MACH, write_time_list[i]);
+                    TimestampEntry entry;
+                    entry.value = value_list[i];
+                    entry.lastWrite = write_time_list[i];
+
+                    write(get_machine_index(key), TS_WRITE_LAST_WRITE_AND_VALUE, key % MAX_DATA_PER_MACH, (char*)&entry,
+                          sizeof(idx_value_t) * 2);
                 }
 
                 compare_and_swap(get_machine_index(key), TS_COMPARE_AND_SWAP_LOCK, key, 1, 0);

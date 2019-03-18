@@ -16,27 +16,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f90cba02-27e2-403c-b838-5a0497232dc2" name="Default" comment="timestamp framework">
-      <change afterPath="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/test_main.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/test_timestamp.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/CCServer.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/CCServer.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/Mvcc.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/Mvcc.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/OCC/Occ.cpp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/OCC/Occ.h" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/Twopl/Twopl.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/Twopl/Twopl.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CC_Algorithm/Twopl/Twopl.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/CC_Algorithm/Twopl/Twopl.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/defines.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/defines.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/test_pthread.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/test_framework.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/test_rdma.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/test_rdma.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/test_utils.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/test_utils.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils.h" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -51,62 +36,23 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="149" column="77" selection-start-line="149" selection-start-column="66" selection-end-line="149" selection-end-column="77" />
+            <state relative-caret-position="270">
+              <caret line="57" column="18" selection-start-line="57" selection-start-column="7" selection-end-line="57" selection-end-column="18" />
               <folding>
-                <element signature="e#188#202#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/CCServer.hpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="28" column="82" selection-start-line="28" selection-start-column="25" selection-end-line="28" selection-end-column="82" />
-              <folding>
-                <element signature="e#109#127#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1340">
-              <caret line="117" column="90" selection-start-line="117" selection-start-column="90" selection-end-line="117" selection-end-column="90" />
-              <folding>
-                <element signature="e#108#122#0" expanded="true" />
+                <element signature="e#257#271#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="472">
-              <caret line="479" lean-forward="true" selection-start-line="479" selection-end-line="479" />
-              <folding>
-                <element signature="e#62#79#0" expanded="true" />
-                <element signature="e#7696#10760#0" expanded="true" />
-                <element signature="e#15099#15472#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="610">
-              <caret line="320" column="14" selection-start-line="320" selection-start-column="14" selection-end-line="320" selection-end-column="14" />
+            <state relative-caret-position="728">
+              <caret line="332" column="91" selection-start-line="332" selection-start-column="74" selection-end-line="332" selection-end-column="91" />
               <folding>
                 <element signature="e#38#55#0" expanded="true" />
-                <element signature="e#7369#7444#0" expanded="true" />
-                <element signature="e#12271#12493#0" expanded="true" />
+                <element signature="e#13016#13238#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -124,12 +70,22 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2124">
+              <caret line="118" column="5" selection-start-line="116" selection-start-column="4" selection-end-line="118" selection-end-column="5" />
+              <folding>
+                <element signature="e#108#122#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>strcmp(serverName, &quot;</find>
-      <find>init</find>
       <find>TwoplServer</find>
       <find>bind</find>
       <find>get_operation_socket</find>
@@ -158,6 +114,8 @@
       <find>this-&gt;server</find>
       <find>this-&gt;glo</find>
       <find>write</find>
+      <find>TS_WRITE_LOCK</find>
+      <find>TS_READ_LAST_WRITE</find>
     </findStrings>
     <replaceStrings>
       <replace>mvcc_entry</replace>
@@ -212,20 +170,19 @@
         <option value="$PROJECT_DIR$/src/CC_Algorithm/Twopl/Twopl.cpp" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/src/defines.h" />
-        <option value="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp" />
-        <option value="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h" />
         <option value="$PROJECT_DIR$/src/CC_Algorithm/CCServer.hpp" />
         <option value="$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.h" />
         <option value="$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.cpp" />
+        <option value="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h" />
+        <option value="$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp" />
       </list>
     </option>
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="1920" />
-    <option name="y" value="-2" />
+    <option name="y" value="25" />
     <option name="width" value="1920" />
-    <option name="height" value="1082" />
+    <option name="height" value="1055" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -371,7 +328,8 @@
       <workItem from="1551014465687" duration="4961000" />
       <workItem from="1551433274360" duration="599000" />
       <workItem from="1552488745971" duration="18752000" />
-      <workItem from="1552559979685" duration="6362000" />
+      <workItem from="1552559979685" duration="14007000" />
+      <workItem from="1552908550277" duration="2990000" />
     </task>
     <task id="LOCAL-00001" summary="timestamp framework">
       <created>1548049458842</created>
@@ -416,7 +374,7 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="261297000" />
+    <option name="totallyTimeSpent" value="271932000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -428,10 +386,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1920" y="-2" width="1920" height="1082" extended-state="6" />
+    <frame x="0" y="25" width="1920" height="1055" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14010695" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14171124" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -441,7 +399,7 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32897604" />
-      <window_info anchor="bottom" x="1945" y="399" width="1870" height="280" id="Terminal" order="7" weight="0.74868006" />
+      <window_info anchor="bottom" x="1945" y="399" width="1870" height="280" id="Terminal" order="7" weight="0.74845994" />
       <window_info anchor="bottom" id="Event Log" order="8" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="9" weight="0.32910052" />
       <window_info anchor="bottom" id="CMake" order="10" weight="0.32897604" />
@@ -765,6 +723,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="8982">
+          <caret line="640" lean-forward="true" selection-start-line="640" selection-end-line="640" />
+          <folding>
+            <element signature="e#62#79#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/CCServer.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="414">
+          <caret line="29" column="68" selection-start-line="29" selection-start-column="68" selection-end-line="29" selection-end-column="68" />
+          <folding>
+            <element signature="e#109#127#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/test/test_framework.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3132">
@@ -775,56 +753,33 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="610">
-          <caret line="320" column="14" selection-start-line="320" selection-start-column="14" selection-end-line="320" selection-end-column="14" />
-          <folding>
-            <element signature="e#38#55#0" expanded="true" />
-            <element signature="e#7369#7444#0" expanded="true" />
-            <element signature="e#12271#12493#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="149" column="77" selection-start-line="149" selection-start-column="66" selection-end-line="149" selection-end-column="77" />
-          <folding>
-            <element signature="e#188#202#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/CCServer.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="28" column="82" selection-start-line="28" selection-start-column="25" selection-end-line="28" selection-end-column="82" />
-          <folding>
-            <element signature="e#109#127#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1340">
-          <caret line="117" column="90" selection-start-line="117" selection-start-column="90" selection-end-line="117" selection-end-column="90" />
+        <state relative-caret-position="2124">
+          <caret line="118" column="5" selection-start-line="116" selection-start-column="4" selection-end-line="118" selection-end-column="5" />
           <folding>
             <element signature="e#108#122#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Timestamp/Timestamp.cpp">
+    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="472">
-          <caret line="479" lean-forward="true" selection-start-line="479" selection-end-line="479" />
+        <state relative-caret-position="270">
+          <caret line="57" column="18" selection-start-line="57" selection-start-column="7" selection-end-line="57" selection-end-column="18" />
           <folding>
-            <element signature="e#62#79#0" expanded="true" />
-            <element signature="e#7696#10760#0" expanded="true" />
-            <element signature="e#15099#15472#0" expanded="true" />
+            <element signature="e#257#271#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/CC_Algorithm/Occ/Occ.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="728">
+          <caret line="332" column="91" selection-start-line="332" selection-start-column="74" selection-end-line="332" selection-end-column="91" />
+          <folding>
+            <element signature="e#38#55#0" expanded="true" />
+            <element signature="e#13016#13238#0" expanded="true" />
           </folding>
         </state>
       </provider>
