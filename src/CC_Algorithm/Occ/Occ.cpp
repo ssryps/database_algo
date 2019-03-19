@@ -7,6 +7,7 @@
 #include <hash_map>
 #include <assert.h>
 #include <set>
+#include <unordered_map>
 
 
 OccServer::OccServer() {}
@@ -68,7 +69,7 @@ bool OccServer::fetch_and_add(int mach_id, int type, idx_key_t key, idx_value_t*
 }
 
 
-bool OccServer::rdma_read(int mach_id, int type, idx_key_t key, char* value, int sz){
+bool OccServer::rdma_read(int mach_id, int type, idx_key_t key, char* value, int* sz){
     //*value =
     return true;
 }
@@ -98,31 +99,39 @@ bool OccServer::rdma_fetch_and_add(int mach_id, int type, idx_key_t key, idx_val
 bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, char* value, int* sz) {
     switch (type) {
         case OCC_READ_SERVER_TXN_NUM: {
-            occ_idx_num_t *num = (occ_idx_num_t *)OCC_SERVER_TXN_NUM(mach_id, this->global_buf, this->buf_sz);
+            occ_idx_num_t *num = (occ_idx_num_t *)OCC_SERVER_TXN_IDX(this->global_buf, this->buf_sz);
 
             std::memcpy(value, num, sizeof(occ_idx_num_t));
             (*sz) = sizeof(occ_idx_num_t);
             break;
         }
         case OCC_READ_SERVER_TXN_BUF: {
-            OccServerTxnEntry* server_txn_buf = (OccServerTxnEntry *)OCC_SERVER_TXN_BUF(mach_id, this->global_buf, this->buf_sz);
+            OccServerTxnEntry* server_txn_buf = (OccServerTxnEntry *)OCC_SERVER_TXN_BUF(this->global_buf, this->buf_sz);
             std::memcpy(value, &(server_txn_buf[key]), sizeof(OccServerTxnEntry));
 
             (*sz) = sizeof(OccServerTxnEntry);
             break;
         }
-        case OCC_READ_TXN_NUM: {
-            occ_idx_num_t *num = (occ_idx_num_t *)OCC_TXN_NUM(mach_id, this->global_buf, this->buf_sz);
-
-            std::memcpy(value, num, sizeof(occ_idx_num_t));
-            (*sz) = sizeof(occ_idx_num_t);
-            break;
-        }
+//        case OCC_READ_: {
+//            occ_idx_num_t *num = (occ_idx_num_t *)OCC_TXN_IDX(mach_id, this->global_buf, this->buf_sz);
+//
+//            std::memcpy(value, num, sizeof(occ_idx_num_t));
+//            (*sz) = sizeof(occ_idx_num_t);
+//            break;
+//        }
         case OCC_READ_TXN_BUF: {
             OccTxnEntry* server_txn_buf = (OccTxnEntry *)OCC_TXN_BUF(mach_id, this->global_buf, this->buf_sz);
             std::memcpy(value, &(server_txn_buf[key]), sizeof(OccTxnEntry));
 
             (*sz) = sizeof(OccTxnEntry);
+            break;
+        }
+
+        case OCC_READ_DATA_BUF: {
+            OccDataEntry* data_buf = (OccDataEntry*)OCC_DATA_BUF(mach_id, this->global_buf, this->buf_sz);
+            std::memcpy(value, &(data_buf[key]), sizeof(OccDataEntry));
+
+            (*sz) = sizeof(OccDataEntry);
             break;
         }
 
@@ -136,6 +145,7 @@ bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, char* value, 
 
 #endif
         default:{
+            assert(false);
             break;
         }
     }
@@ -144,12 +154,13 @@ bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, char* value, 
 
 
 bool OccServer::pthread_write(int mach_id, int type, idx_key_t key, char* value, int sz) {
-//    TimestampDataBuf* des_buf = reinterpret_cast<TimestampDataBuf*>(this->global_buf[mach_id]);
-//    switch (type) {
-//        case TS_WRITE_VALUE: {
-//            des_buf->entries[key % MAX_DATA_PER_MACH].value = value;
-//            break;
-//        }
+    switch (type) {
+        case OCC_WRITE_DATA_BUF: {
+            OccDataEntry* entry_in = (OccDataEntry*) value;
+            OccDataEntry* data_buf = (OccDataEntry*)OCC_DATA_BUF(mach_id, this->global_buf, this->buf_sz);
+            data_buf[key % MAX_DATA_PER_MACH].value = entry_in->value;
+            break;
+        }
 //        case TS_WRITE_LAST_READ: {
 //            des_buf->entries[key % MAX_DATA_PER_MACH].lastRead = value;
 //            break;
@@ -158,19 +169,19 @@ bool OccServer::pthread_write(int mach_id, int type, idx_key_t key, char* value,
 //            des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite = value;
 //            break;
 //        }
-//#ifdef TWO_SIDE
-//
-//#else
+#ifdef TWO_SIDE
+
+#else
 //        case TS_WRITE_LOCK: {
 //            des_buf->entries[key % MAX_DATA_PER_MACH].lock = value;
 //            break;
 //        }
-//#endif
-//        default:{
-//            break;
-//        }
-//
-//    }
+#endif
+        default:{
+            break;
+        }
+
+    }
     return true;
 }
 
@@ -217,9 +228,9 @@ bool OccServer::pthread_recv(int *mach_id, int *type, char **buf, int *sz, comm_
 }
 
 
-bool OccServer::pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value) {
-//    TimestampDataBuf* des_buf = reinterpret_cast<TimestampDataBuf*>(this->global_buf[mach_id]);
-//    switch (type) {
+bool OccServer::pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value,
+        idx_value_t new_value) {
+    switch (type) {
 //        case TS_COMPARE_AND_SWAP_VALUE:  {
 //            idx_value_t *value_pos = &(des_buf->entries[key % MAX_DATA_PER_MACH].value) ;
 //            return __sync_bool_compare_and_swap( value_pos, old_value, new_value) ;
@@ -232,26 +243,41 @@ bool OccServer::pthread_compare_and_swap(int mach_id, int type, idx_key_t key, i
 //            idx_value_t *last_write_pos = &(des_buf->entries[key % MAX_DATA_PER_MACH].lastWrite);
 //            return __sync_bool_compare_and_swap(last_write_pos, old_value, new_value);
 //        }
-//
-//#ifdef TWO_SIDE
-//
-//#else
-//
-//        case TS_COMPARE_AND_SWAP_LOCK: {
-//            idx_value_t *lock_pos = &(des_buf->entries[key % MAX_DATA_PER_MACH].lock);
-//            return __sync_bool_compare_and_swap(lock_pos, old_value, new_value);
-//        }
-//
-//#endif
-//
-//    }
+
+#ifdef TWO_SIDE
+
+#else
+
+
+        case OCC_COMPARE_AND_SWAP_DATA_LOCK: {
+             auto data_buf = (OccDataEntry*)OCC_DATA_BUF(mach_id, this->global_buf, this->buf_sz);
+             idx_value_t *lock_pos = &(data_buf[key % MAX_DATA_PER_MACH].lock);
+             return __sync_bool_compare_and_swap(lock_pos, old_value, new_value);
+        }
+
+        case OCC_COMPARE_AND_SWAP_SERVER_LOCK: {
+            auto lock = (int*)OCC_SERVER_LOCK(this->global_buf, this->buf_sz);
+            while(!__sync_bool_compare_and_swap(lock, OCC_LOCK_OFF, OCC_LOCK_ON))
+                ;
+        }
+
+#endif
+        default:{
+
+            assert(false);
+            break;
+        }
+    }
     return false;
 }
 
 bool OccServer::pthread_fetch_and_add(int mach_id, int type, idx_key_t key, idx_value_t* value) {
+#ifdef TWO_SIDE
+
+#else
 //    switch (type) {
-//        case TS_FEACH_AND_ADD_TIMESTAMP: {
-//            std::atomic<int> *cur = this->timestamp_generator;
+//        case OCC_FEACH_AND_ADD_TIMESTAMP: {
+//            auto cur = (std::atomic<occ_time_t> *)OCC_SERVER_LOCK(this->global_buf, this->buf_sz);
 //
 //            int oldValue, newValue;
 //            do {
@@ -267,6 +293,8 @@ bool OccServer::pthread_fetch_and_add(int mach_id, int type, idx_key_t key, idx_
 //        }
 //    }
 //    return false;
+    assert(false);
+#endif
 }
 
 
@@ -274,7 +302,7 @@ bool OccServer::pthread_fetch_and_add(int mach_id, int type, idx_key_t key, idx_
 
 #else
 
-bool OccServer::init(int id, char **data_buf, int sz,) {
+bool OccServer::init(int id, char **data_buf, int sz) {
 
     this->server_id = id;
     this->global_buf = data_buf;
@@ -294,39 +322,115 @@ bool OccServer::init(int id, char **data_buf, int sz,) {
 
 
 bool OccServer::get_entry(idx_key_t key, OccDataEntry *value, comm_identifer ident) {
+#ifdef TWO_SIDE
+
+#else
+
+    int sz;
+    return read(get_machine_index(key), OCC_READ_DATA_BUF, key, (char*)value, &sz);
+
+#endif
 
 }
 
-bool OccServer::get_timestamp(idx_value_t *value, int stage) {
-    return fetch_and_add(0, OCC_FEACH_AND_ADD_TIMESTAMP, 0, value);
+bool OccServer::write_entry(idx_key_t key, OccDataEntry *value, comm_identifer ident) {
+#ifdef TWO_SIDE
+
+#else
+    bool ok;
+    ok = compare_and_swap(get_machine_index(key), OCC_COMPARE_AND_SWAP_DATA_LOCK, key, 0, 1);
+    assert(ok);
+    ok = write(get_machine_index(key), OCC_WRITE_DATA_BUF, key, (char*)value, sizeof(OccDataEntry));
+    assert(ok);
+
+    ok = compare_and_swap(get_trans_info(key), OCC_COMPARE_AND_SWAP_DATA_LOCK, key, 1, 0);
+    assert(ok);
+
+#endif
 }
 
-bool OccServer::store_transaction_info(occ_time_t read_time, std::set<idx_key_t> *read_set,
-                                       std::set<idx_key_t> *write_set) {
-    occ_idx_num_t *txn_idx = (occ_idx_num_t *)OCC_TXN_NUM(this->server_id,
+
+bool OccServer::get_start_timestamp(occ_time_t *value) {
+
+#ifdef TWO_SIDE
+
+#else
+
+    bool ok;
+    ok = compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK, 0, 0, 1);
+    assert(ok);
+
+    auto lock = (int *) OCC_SERVER_LOCK(this->global_buf, this->buf_sz);
+    while (!__sync_bool_compare_and_swap(lock, OCC_LOCK_OFF, OCC_LOCK_ON));
+
+    auto timestamp = (occ_time_t *) OCC_SERVER_TIMESTAMP(this->global_buf, this->buf_sz);
+    *value = *timestamp;
+
+    assert(__sync_bool_compare_and_swap(lock, OCC_LOCK_ON, OCC_LOCK_OFF));
+
+    return true;
+
+#endif
+}
+
+bool OccServer::get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t m_start_t, occ_time_t m_vali_t) {
+
+    auto lock = (int*)OCC_SERVER_LOCK(this->global_buf, this->buf_sz);
+    while(!__sync_bool_compare_and_swap(lock, OCC_LOCK_OFF, OCC_LOCK_ON))
+        ;
+
+    auto timestamp = (occ_time_t*)OCC_SERVER_TIMESTAMP(this->global_buf, this->buf_sz);
+    *value = *timestamp;
+
+    auto txn_idx = (occ_idx_num_t*)OCC_SERVER_TXN_IDX(this->global_buf, this->buf_sz);
+    auto txn_buf = (OccServerTxnEntry*)OCC_SERVER_TXN_BUF(this->global_buf, this->buf_sz);
+
+    (*txn_idx)++;
+    txn_buf[(*txn_idx)].ts = m_vali_t;
+    txn_buf[(*txn_idx)].mach_id = m_id;
+    txn_buf[(*txn_idx)].start_time = m_start_t;
+    txn_buf[(*txn_idx)].end_time = -1;
+
+
+    assert(__sync_bool_compare_and_swap(lock, OCC_LOCK_ON, OCC_LOCK_OFF));
+
+}
+
+
+
+bool OccServer::store_transaction_info(occ_time_t read_time, std::unordered_set<idx_key_t> *read_set,
+                                       std::unordered_set<idx_key_t> *write_set) {
+#ifdef TWO_SIDE
+
+#else
+    occ_idx_num_t *key_idx = (occ_idx_num_t *)OCC_KEY_IDX(this->server_id,
             this->global_buf, this->buf_sz);
     OccTxnEntry *txn_list = (OccTxnEntry*)OCC_TXN_BUF(this->server_id,
             this->global_buf, this->buf_sz);
 
-    (txn_list[read_time]).write_begin_ptr = (*txn_idx);
+    (txn_list[read_time]).write_begin_ptr = (*key_idx);
 
-    for(auto ele: *write_set) {
-        idx_key_t *pos = (idx_key_t *)OCC_KEY_BUF(this->server_id, this->global_buf, this->buf_sz);
-        pos[*txn_idx] = ele;
-        (*txn_idx) ++;
-        (*txn_idx) %= OCC_SEGMENT_SIZE / sizeof(OccKeyEntry);
+
+    OccKeyEntry *key_buf = (OccKeyEntry *)OCC_KEY_BUF(this->server_id, this->global_buf, this->buf_sz);
+
+    for(auto it = write_set->begin(); it != write_set->end(); it++) {
+        key_buf[*key_idx].key = (*it);
+        (*key_idx) ++;
+        (*key_idx) %= OCC_KEY_TOTAL_IDX;
     }
 
-    (txn_list[read_time]).write_end_ptr = (*txn_idx);
+    (txn_list[read_time]).write_end_ptr = (*key_idx);
 
+
+#endif
 }
 
-bool OccServer::get_check_trans(idx_value_t read_time, idx_value_t validation_time, std::vector<int>* mach_set_peer,
-        std::vector<idx_value_t>* start_time_set_peer){
+bool OccServer::get_check_trans(occ_time_t read_time, occ_time_t validation_time,
+        std::vector<int>* mach_set_peer, std::vector<occ_time_t >* start_time_set_peer){
 #ifdef TWO_SIDE
 
 #else
-//    int*  txn_idx = (int*)OCC_SERVER_TXN_NUM(0, this->global_buf, this->buf_sz);
+//    int*  txn_idx = (int*)OCC_SERVER_TXN_IDX(0, this->global_buf, this->buf_sz);
 //    OccServerTxnEntry* txn_buf = (OccServerTxnEntry*)OCC_SERVER_TXN_BUF(0, this->global_buf, this->buf_sz);
     occ_idx_num_t txn_idx;
     int idx_sz;
@@ -345,50 +449,49 @@ bool OccServer::get_check_trans(idx_value_t read_time, idx_value_t validation_ti
             start_time_set_peer->push_back(txn.start_time);
         }
     }
+
+    return true;
 #endif
 
 }
 
-bool OccServer::get_trans_info(int peer, int start_time_peer, int *end_time_peer, std::set<int> *write_set_peer) {
+bool OccServer::get_trans_info(int peer, occ_time_t start_time_peer, occ_time_t *end_time_peer,
+        std::unordered_set<idx_key_t> *write_set_peer) {
 #ifdef TWO_SIDE
 
 #else
-    occ_idx_num_t txn_idx;
+
+    OccTxnEntry txn_entry;
     int sz;
-    read(peer, OCC_READ_TXN_NUM, 0, (char*)&txn_idx, &sz);
-    assert(sz == sizeof(occ_idx_num_t));
+    read(peer, OCC_READ_TXN_BUF, start_time_peer, (char *)&txn_entry, &sz);
+    assert(sz == sizeof(OccTxnEntry));
 
-    for(int i = txn_idx - 1; i >= 0; i--) {
-        OccTxnEntry txn_entry;
-        int sz;
-        read(peer, OCC_READ_TXN_BUF, start_time_peer, (char *)&txn_entry, &sz);
-        assert(sz == sizeof(OccTxnEntry));
+    (*end_time_peer) = txn_entry.endtime;
 
-        tx
-
-        int beg = txn_entry.write_begin_ptr, ed = txn_entry.write_end_ptr;
-        for(int j = beg; j != ed; j ++, j %= (OCC_SEGMENT_SIZE / sizeof(OccTxnEntry))){
-
-        }
+    int beg = txn_entry.write_begin_ptr, ed = txn_entry.write_end_ptr;
+    for(int i = beg; i != ed; i ++, i %= OCC_KEY_TOTAL_IDX){
+        OccKeyEntry* key_entry = (OccKeyEntry*)OCC_KEY_BUF(this->server_id, this->global_buf, this->buf_sz);
+        write_set_peer->insert(key_entry[i].key);
     }
 
+    return true;
 #endif
 }
 
 TransactionResult OccServer::handle(Transaction* transaction){
     TransactionResult result;
     if(!checkGrammar(transaction)){
-        result.isSuccess = false;
+        result.is_success = false;
         return result;
     }
-    __gnu_cxx::hash_map<idx_key_t, idx_value_t> local_db;
-    std::set<idx_key_t> read_set, write_set;
+    std::unordered_map<idx_key_t, idx_value_t> local_db;
+    std::unordered_set<idx_key_t> read_set, write_set;
 
     idx_value_t *temp_result = new idx_value_t[transaction->commands.size()];
 
     // read and compute intermediate result
-    idx_value_t read_time;
-    bool ok = get_timestamp(&read_time, OCC_READ_PHASE);
+    occ_time_t read_time;
+    bool ok = get_start_timestamp(&read_time);
     if(!ok) {
         printf("can't get timestamp");
         exit(1);
@@ -445,8 +548,8 @@ TransactionResult OccServer::handle(Transaction* transaction){
     // validation phase
     store_transaction_info(read_time, &read_set, &write_set);
 
-    idx_value_t validation_time;
-    ok = get_timestamp(&validation_time, OCC_VAL_PHASE);
+    occ_time_t validation_time;
+    ok = get_validation_timestamp(&validation_time, this->server_id, read_time, validation_time);
     if(!ok) {
         printf("can't get timestamp");
         exit(1);
@@ -466,29 +569,43 @@ TransactionResult OccServer::handle(Transaction* transaction){
     std::vector<occ_time_t> start_time_set_peer;
 
     ok = get_check_trans(read_time, validation_time, &mach_set_peer, &start_time_set_peer);
-
+    if(!ok) {
+        printf("can't get check transactions");
+        exit(1);
+    }
 
     bool abort = false;
     for(int i = 0; i < mach_set_peer.size(); i++){
         int mach_peer = mach_set_peer[i];
         occ_time_t start_time_peer = start_time_set_peer[i], end_time_peer;
-        std::set<idx_key_t> write_set_peer;
+        std::unordered_set<idx_key_t> write_set_peer;
 
         get_trans_info(mach_peer, start_time_peer, &end_time_peer, &write_set_peer);
 
         if(end_time_peer < validation_time){
-            if(common_elements(write_set, read_set)){
+            if(common_elements(write_set_peer, read_set)){
                 abort = true;
             }
         } else {
-            if(common_elements(write_set, read_set) || common_elements(write_set, write_set)){
+            if(common_elements(write_set_peer, read_set) || common_elements(write_set_peer, write_set)){
                 abort = true;
             }
         }
     }
 
     // write phase
-    result.isSuccess = true;
+    if(abort) {
+
+        result.is_success = false;
+        return result;
+    }
+
+
+    for(auto it = local_db.begin(); it != local_db.end(); it++){
+        write_entry
+    }
+
+    result.is_success = true;
     return result;
 }
 
@@ -509,7 +626,9 @@ int OccServer::run() {
 
 }
 
+
 void* timestamp_generator_thread(void* buf) {
 
 //    std::atomic<int>*
 }
+

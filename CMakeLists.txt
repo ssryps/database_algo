@@ -6,6 +6,7 @@ set (CMAKE_WARN_DEPRECATED 0)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin/)
 
+set (CMAKE_CXX_STANDARD 11)
 
 enable_testing()
 find_package(GTest REQUIRED)

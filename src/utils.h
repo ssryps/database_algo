@@ -44,7 +44,7 @@ struct Transaction{
 class TransactionResult{
 public:
     std::vector<idx_value_t> results;
-    bool isSuccess;
+    bool is_success;
 };
 
 

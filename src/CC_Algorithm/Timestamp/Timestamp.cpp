@@ -573,7 +573,7 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
     TransactionResult result;
 
     if(!checkGrammar(transaction)){
-        result.isSuccess = false;
+        result.is_success = false;
         return result;
     }
 
@@ -650,11 +650,11 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
 
     if(abort){
         rollback(transaction, i, rollback_value_list, rollback_wtime_list);
-        result.isSuccess = false;
+        result.is_success = false;
         return result;
     }
 
-    result.isSuccess = true;
+    result.is_success = true;
     return result;
 
 }

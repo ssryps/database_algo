@@ -87,7 +87,7 @@ public:
                                 };
                                 put_entry(key, key_cur_pos, old_entry);
                             } else {
-                                results.isSuccess = false;
+                                results.is_success = false;
                                 return results;
                             }
                             break;

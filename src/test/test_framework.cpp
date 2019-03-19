@@ -56,7 +56,7 @@ void* PthreadClient(void* args){
                 TransactionResult result = server->handle(transaction);
                 int offset = 0;
                 char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
-                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.isSuccess);
+                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.is_success);
                 for (auto i : result.results)
                     offset += sprintf(output_buf + offset, "%i\n", i);
                 printf(output_buf);
@@ -74,7 +74,7 @@ void* PthreadClient(void* args){
                 TransactionResult result = server->handle(transaction);
                 int offset = 0;
                 char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
-                offset += sprintf(output_buf + offset, "thread %d's result: %s\n",info->id, result.isSuccess? "success": "abort");
+                offset += sprintf(output_buf + offset, "thread %d's result: %s\n",info->id, result.is_success? "success": "abort");
                 for (auto i : result.results)
                     offset += sprintf(output_buf + offset, "%i\n", i);
                 printf(output_buf);
@@ -87,7 +87,7 @@ void* PthreadClient(void* args){
                 TransactionResult result = server->handle(transaction);
                 int offset = 0;
                 char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
-                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.isSuccess);
+                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.is_success);
                 for (auto i : result.results)
                     offset += sprintf(output_buf + offset, "%i\n", i);
                 printf(output_buf);

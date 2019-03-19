@@ -209,7 +209,7 @@ TransactionResult TwoplServer::handle(Transaction* transaction) {
     std::set<idx_key_t > keys;
 
     if(!checkGrammar(transaction)){
-        results.isSuccess = false;
+        results.is_success = false;
         return results;
     }
 
@@ -246,7 +246,7 @@ TransactionResult TwoplServer::handle(Transaction* transaction) {
 
     for(auto i = keys.begin(); i != keys.end(); i++){ unlock(*i); }
 
-    results.isSuccess = true;
+    results.is_success = true;
 
     return results;
 }
