@@ -7,24 +7,39 @@
 
 
 #define OCC_COMPARE_AND_SWAP_DATA_LOCK 0
-#define OCC_COMPARE_AND_SWAP_SERVER_LOCK 1
+#define OCC_COMPARE_AND_SWAP_TXN_LOCK 1
+#define OCC_COMPARE_AND_SWAP_TXN_UNLOCK 2
+
+#define OCC_COMPARE_AND_SWAP_SERVER_LOCK 3
+#define OCC_COMPARE_AND_SWAP_SERVER_UNLOCK 4
 
 
 #define OCC_FEACH_AND_ADD_TIMESTAMP 0
+#define OCC_FEACH_AND_ADD_SERVER_TXN_IDX 1
 
-
-#define OCC_READ_SERVER_TXN_NUM 0
+#define OCC_READ_SERVER_TXN_IDX 0
 #define OCC_READ_SERVER_TXN_BUF 1
-#define OCC_READ_TXN_BUF 2
-#define OCC_READ_DATA_BUF 3
+#define OCC_READ_DATA_BUF 2
+#define OCC_READ_TXN_BUF 3
+#define OCC_READ_KEY_IDX 4
+#define OCC_READ_KEY_BUF 5
 
 
-#define OCC_WRITE_DATA_BUF 3
+#define OCC_WRITE_DATA_BUF 0
+#define OCC_WRITE_TXN_BUF 1
+#define OCC_WRITE_TXN_ENDTIME 2
+
+#define OCC_WRITE_KEY_IDX 3
+#define OCC_WRITE_KEY_BUF 4
+#define OCC_WRITE_SERVER_TXN 5
+
 
 #define OCC_READ_PHASE 0
 #define OCC_VAL_PHASE 1
 
-
+#define OCC_TXN_RUNNING 0
+#define OCC_TXN_SUCCESS 1
+#define OCC_TXN_ABORT 2
 
 #include <map>
 #include <mutex>
@@ -64,27 +79,28 @@ struct OccDataEntry {
 
 
 struct OccTxnEntry {
-    occ_time_t endtime;
+    occ_time_t end_time;
     int write_begin_ptr;
     int write_end_ptr;
+    int abort;
 };
 
-//#define OCC_TXN_IDX(id, buf_list, sz) ({   \
-//    char* buf;                     \
-//    if(id == 0) {                  \
-//        buf = buf_list[id] + sz / 4;        \
-//    } else {                       \
-//        buf = buf_list[id] + sz / 3;        \
-//    }                              \
-//    buf;                           \
-//})
-
-#define OCC_TXN_BUF(id, buf_list, sz) ({   \
+#define OCC_TXN_LOCK(id, buf_list, sz) ({   \
     char* buf;                     \
     if(id == 0) {                  \
         buf = buf_list[id] + sz / 4;        \
     } else {                       \
         buf = buf_list[id] + sz / 3;        \
+    }                              \
+    buf;                           \
+})
+
+#define OCC_TXN_BUF(id, buf_list, sz) ({   \
+    char* buf;                     \
+    if(id == 0) {                  \
+        buf = buf_list[id] + sz / 4 + sizeof(int);        \
+    } else {                       \
+        buf = buf_list[id] + sz / 3 + sizeof(int);        \
     }                              \
     buf;                           \
 })
@@ -125,6 +141,7 @@ struct OccServerTxnEntry {
     occ_time_t start_time;
     occ_time_t end_time;
 
+    int abort;
 };
 
 
@@ -213,9 +230,9 @@ private:
 
     bool get_entry(idx_key_t key, OccDataEntry *value, comm_identifer ident);
 
-    bool write_entry(idx_key_t key, OccDataEntry* value, comm_identifer ident);
+    bool write_entry(idx_key_t key, idx_value_t value, comm_identifer ident);
 
-    bool get_start_timestamp(occ_time_t *value);
+    bool get_timestamp(occ_time_t *value);
 
     bool get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t m_start_t, occ_time_t m_vali_t);
 
@@ -226,10 +243,10 @@ private:
     bool get_check_trans(occ_time_t read_time, occ_time_t validation_time, std::vector<int>* mach_set_peer,
             std::vector<occ_time_t >* start_time_set_peer);
 
-    bool get_trans_info(int peer, occ_time_t start_time_peer, occ_time_t *end_time_peer,
+    bool get_trans_info(int peer, occ_time_t start_time_peer, int* abort, occ_time_t *end_time_peer,
             std::unordered_set<idx_key_t >* write_set_peer);
 
-
+    bool update_transaction_info(occ_time_t read_time, occ_time_t end_time, int abort);
 };
 
 
