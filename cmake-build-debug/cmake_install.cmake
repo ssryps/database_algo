@@ -1,4 +1,4 @@
-# Install script for directory: /home/mason/CS/Code/database_algo
+# Install script for directory: /home/mason/cs/code/database_algo
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/mason/CS/Code/database_algo/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/mason/cs/code/database_algo/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
