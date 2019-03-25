@@ -3,7 +3,6 @@
 //
 #include "utils.h"
 
-bool random_flag = true;
 
 
 idx_value_t value_from_command(Command command, idx_value_t* temp_result){

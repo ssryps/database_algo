@@ -138,7 +138,7 @@ bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, char* value, 
 
         case OCC_READ_KEY_BUF:{
             auto key_buf = (OccKeyEntry*)OCC_KEY_BUF(mach_id, this->global_buf, this->buf_sz);
-            std::memcpy(&key_buf[key], value, sizeof(OccKeyEntry));
+            std::memcpy(value, &key_buf[key], sizeof(OccKeyEntry));
             (*sz) = sizeof(OccKeyEntry);
             break;
         }
@@ -270,8 +270,6 @@ bool OccServer::pthread_compare_and_swap(int mach_id, int type, idx_key_t key, i
 #ifdef TWO_SIDE
 
 #else
-
-
         case OCC_COMPARE_AND_SWAP_DATA_LOCK: {
              auto data_buf = (OccDataEntry*)OCC_DATA_BUF(mach_id, this->global_buf, this->buf_sz);
              idx_value_t *lock_pos = &(data_buf[key % MAX_DATA_PER_MACH].lock);
@@ -305,7 +303,7 @@ bool OccServer::pthread_compare_and_swap(int mach_id, int type, idx_key_t key, i
             break;
         }
     }
-    return false;
+    return true;
 }
 
 bool OccServer::pthread_fetch_and_add(int mach_id, int type, idx_key_t key, idx_value_t* value) {
@@ -315,15 +313,15 @@ bool OccServer::pthread_fetch_and_add(int mach_id, int type, idx_key_t key, idx_
     switch (type) {
         case OCC_FEACH_AND_ADD_TIMESTAMP: {
             auto timestamp = (occ_time_t *) OCC_SERVER_TIMESTAMP(this->global_buf, this->buf_sz);
-            (*timestamp) ++;
             *value = *timestamp;
+            (*timestamp) ++;
             break;
         }
 
         case OCC_FEACH_AND_ADD_SERVER_TXN_IDX: {
             auto server_txn_idx = (occ_idx_num_t *) OCC_SERVER_TXN_IDX(this->global_buf, this->buf_sz);
-            (*server_txn_idx)++;
             (*value) = *server_txn_idx;
+            (*server_txn_idx)++;
             break;
         }
 
@@ -398,8 +396,9 @@ bool OccServer::get_timestamp(occ_time_t *value) {
 
     bool ok;
 
-    while(compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK, 0, 0, 1))
+    while(!compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK, 0, 0, 1))
         ;
+
 
     idx_value_t v;
     ok = fetch_and_add(0, OCC_FEACH_AND_ADD_TIMESTAMP, 0, &v);
@@ -440,7 +439,7 @@ bool OccServer::get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t
 //    assert(__sync_bool_compare_and_swap(lock, OCC_LOCK_ON, OCC_LOCK_OFF));
     bool ok;
 
-    while(compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK, 0, 0, 1))
+    while(!compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK, 0, 0, 1))
         ;
 
     // get timestamp
@@ -453,10 +452,11 @@ bool OccServer::get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t
     assert(ok);
 
     OccServerTxnEntry server_txn_entry;
-    server_txn_entry.ts = m_vali_t;
+    server_txn_entry.ts = *value;
     server_txn_entry.mach_id = m_id;
     server_txn_entry.start_time = m_start_t;
     server_txn_entry.end_time = -1;
+    server_txn_entry.abort = OCC_TXN_RUNNING;
     ok = write(0, OCC_WRITE_SERVER_TXN, server_txn_idx, (char*)&server_txn_entry, sizeof(OccServerTxnEntry));
     assert(ok);
 
@@ -476,7 +476,7 @@ bool OccServer::store_transaction_info(occ_time_t read_time, std::unordered_set<
 #ifdef TWO_SIDE
 
 #else
-    while(compare_and_swap(this->server_id, OCC_COMPARE_AND_SWAP_TXN_LOCK , 0, 0, 1))
+    while(!compare_and_swap(this->server_id, OCC_COMPARE_AND_SWAP_TXN_LOCK , 0, 0, 1))
         ;
 
     OccTxnEntry n_txn_entry;
@@ -512,7 +512,7 @@ bool OccServer::get_check_trans(occ_time_t read_time, occ_time_t validation_time
 #ifdef TWO_SIDE
 
 #else
-    while(compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK, 0, 0, 1))
+    while(!compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK, 0, 0, 1))
         ;
 
     occ_idx_num_t txn_idx;
@@ -525,7 +525,7 @@ bool OccServer::get_check_trans(occ_time_t read_time, occ_time_t validation_time
         int txn_sz;
         read(0, OCC_READ_SERVER_TXN_BUF, i, (char*)&txn, &txn_sz);
         assert(txn_sz == sizeof(OccServerTxnEntry));
-        if(txn.ts > validation_time) continue;
+        if(txn.ts >= validation_time) continue;
         if(txn.end_time == -1 || txn.end_time > read_time) {
             mach_set_peer->push_back(txn.mach_id);
             start_time_set_peer->push_back(txn.start_time);
@@ -544,7 +544,7 @@ bool OccServer::get_trans_info(int peer, occ_time_t start_time_peer, int *abort,
 #ifdef TWO_SIDE
 
 #else
-    while(compare_and_swap(peer, OCC_COMPARE_AND_SWAP_TXN_LOCK , 0, 0, 1))
+    while(!compare_and_swap(peer, OCC_COMPARE_AND_SWAP_TXN_LOCK , 0, 0, 1))
         ;
 
     OccTxnEntry txn_entry;
@@ -584,7 +584,7 @@ bool OccServer::update_transaction_info(occ_time_t read_time, occ_time_t end_tim
     memcpy(msg + sizeof(occ_time_t), &abort, sizeof(int));
 
     // update local info
-    while(compare_and_swap(this->server_id, OCC_COMPARE_AND_SWAP_TXN_LOCK , 0, 0, 1))
+    while(!compare_and_swap(this->server_id, OCC_COMPARE_AND_SWAP_TXN_LOCK , 0, 0, 1))
         ;
 
     write(this->server_id, OCC_WRITE_TXN_ENDTIME, read_time, msg, msg_sz);
@@ -593,7 +593,7 @@ bool OccServer::update_transaction_info(occ_time_t read_time, occ_time_t end_tim
 
 
     // update info on server
-    while(compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK , 0, 0, 1))
+    while(!compare_and_swap(0, OCC_COMPARE_AND_SWAP_SERVER_LOCK , 0, 0, 1))
         ;
 
     occ_idx_num_t txn_idx;
@@ -641,10 +641,10 @@ TransactionResult OccServer::handle(Transaction* transaction){
     occ_time_t read_time;
     bool ok = get_timestamp(&read_time);
     if(!ok) {
-        printf("can't get timestamp");
+        printf("can't get read timestamp\n");
         exit(1);
     } else {
-        printf("transaction %i get validation %i\n", this->server_id, read_time);
+        printf("%d read time %d\n", this->server_id, read_time);
     }
 
     for(int i = 0; i < transaction->commands.size(); i ++ ) {
@@ -699,10 +699,10 @@ TransactionResult OccServer::handle(Transaction* transaction){
     occ_time_t validation_time;
     ok = get_validation_timestamp(&validation_time, this->server_id, read_time, validation_time);
     if(!ok) {
-        printf("can't get timestamp");
+        printf("can't get validation timestamp\n");
         exit(1);
     } else {
-        printf("transaction %i get validation %i\n", this->server_id, validation_time);
+        printf("%d validation time %d\n", this->server_id, validation_time);
     }
 
 
@@ -722,6 +722,7 @@ TransactionResult OccServer::handle(Transaction* transaction){
         exit(1);
     }
 
+
     bool abort = false;
     for(int i = 0; i < mach_set_peer.size(); i++){
         int mach_peer = mach_set_peer[i];
@@ -732,7 +733,7 @@ TransactionResult OccServer::handle(Transaction* transaction){
 
         get_trans_info(mach_peer, start_time_peer, &abort_peer, &end_time_peer, &write_set_peer);
 
-        if(abort_peer == 1)
+        if(abort_peer == OCC_TXN_ABORT)
             continue;
 
         if(end_time_peer < validation_time){
@@ -763,7 +764,14 @@ TransactionResult OccServer::handle(Transaction* transaction){
     }
 
     occ_time_t end_time;
-    get_timestamp(&end_time);
+    ok = get_timestamp(&end_time);
+    if(!ok){
+        printf("can't get end timestamp\n");
+        exit(1);
+    } else {
+        printf("%d end time %d\n", this->server_id, end_time);
+    }
+
     update_transaction_info(read_time, end_time, OCC_TXN_SUCCESS);
 
     result.is_success = true;

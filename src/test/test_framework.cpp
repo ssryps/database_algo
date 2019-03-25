@@ -38,6 +38,22 @@ void* PthreadServer(void* args){
             server->run();
             break;
         }
+
+        case ALGO_OCC: {
+            OccServer* server = new OccServer;
+            server->init(info->id, info->thread_buf, SERVER_DATA_BUF_SIZE);
+            server->run();
+            break;
+        }
+        case ALGO_MVCC: {
+
+        }
+
+        default:  {
+
+            assert(false);
+            break;
+        }
     }
 
 }
@@ -56,7 +72,7 @@ void* PthreadClient(void* args){
                 TransactionResult result = server->handle(transaction);
                 int offset = 0;
                 char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
-                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.is_success);
+                offset += sprintf(output_buf + offset, "thread %d: result: %s\n",info->id, result.is_success? "success": "abort");
                 for (auto i : result.results)
                     offset += sprintf(output_buf + offset, "%i\n", i);
                 printf(output_buf);
@@ -84,10 +100,55 @@ void* PthreadClient(void* args){
                 server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE,
                         info->timestamp_generator);
                 Transaction *transaction = generataTransaction(info->id);
+
+                TransactionResult result;
+                while (true) {
+                    result = server->handle(transaction);
+                    if(result.is_success)
+                        break;
+                }
+
+                int offset = 0;
+                char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
+                offset += sprintf(output_buf + offset, "thread %d: result: %s\n",info->id, result.is_success? "success": "abort");
+                for (auto i : result.results)
+                    offset += sprintf(output_buf + offset, "%i\n", i);
+                printf(output_buf);
+
+            #endif
+            break;
+        }
+
+
+        case ALGO_OCC: {
+            #ifdef TWO_SIDE
+                TimestampServer* server = new TimestampServer;
+                server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE,
+                             info->timestamp_generator);
+                Transaction *transaction = generataTransaction(info->id);
                 TransactionResult result = server->handle(transaction);
                 int offset = 0;
                 char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
-                offset += sprintf(output_buf + offset, "thread %d: result: %d\n",info->id, result.is_success);
+                offset += sprintf(output_buf + offset, "thread %d's result: %s\n",info->id, result.is_success? "success": "abort");
+                for (auto i : result.results)
+                    offset += sprintf(output_buf + offset, "%i\n", i);
+                printf(output_buf);
+
+            #else
+                OccServer* server = new OccServer;
+                server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE);
+                Transaction *transaction = generataTransaction(info->id);
+
+                TransactionResult result;
+                while (true) {
+                    result = server->handle(transaction);
+                    if(result.is_success)
+                        break;
+                }
+
+                int offset = 0;
+                char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
+                offset += sprintf(output_buf + offset, "thread %d: result: %s\n",info->id, result.is_success? "success": "abort");
                 for (auto i : result.results)
                     offset += sprintf(output_buf + offset, "%i\n", i);
                 printf(output_buf);
@@ -150,19 +211,19 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
             client_info[i].timestamp_generator = timestamp_generator;
         }
 
-    } else if(algo_name == ALGO_MVCC) {
-        //      server = new MvccServer;
     } else if(algo_name == ALGO_OCC) {
         for(int i = 0; i < SERVER_THREAD_NUM; i++){
-            server_info[i].server_type = ALGO_TWOPL;
+            server_info[i].server_type = ALGO_OCC;
             server_info[i].id = i;
             server_info[i].thread_buf = global_buf;
         }
         for(int i = 0; i < CLIENT_THREAD_NUM; i++){
-            client_info[i].server_type = ALGO_TWOPL;
-            client_info[i].id = -i;
+            client_info[i].server_type = ALGO_OCC;
+            client_info[i].id = i;
             client_info[i].server_buf = global_buf;
         }
+    } else if(algo_name == ALGO_MVCC) {
+
     } else {
         std::cout << "wrong server name";
         exit(0);

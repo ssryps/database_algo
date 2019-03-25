@@ -38,7 +38,7 @@ target_link_libraries(main ${addition_lib})
 
 add_executable(ALGO_TEST
 		src/test/test_main.cpp
-		src/test/test_timestamp.cpp
+		src/test/test_utils.hpp
 		src/CC_Algorithm/CCServer.hpp
 		src/CC_Algorithm/Twopl/Twopl.cpp
 		src/CC_Algorithm/Timestamp/Timestamp.cpp

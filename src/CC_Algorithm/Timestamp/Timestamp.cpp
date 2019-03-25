@@ -492,9 +492,14 @@ bool TimestampServer::write_entry(idx_key_t key, idx_value_t value, idx_value_t 
 }
 
 bool TimestampServer::close_connection(comm_identifer ident) {
+
+#ifdef TWO_SIDE
     char i;
     send_i(this->server_id, TS_RECV_CLOSE, &i, sizeof(char), ident);
     close_socket(ident);
+#else
+
+#endif
 }
 
 

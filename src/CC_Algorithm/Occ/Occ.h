@@ -151,8 +151,8 @@ const int OCC_SERVER_TXN_IDX_OFFSET   = OCC_SERVER_TIMESTAMP_OFFSET + sizeof(occ
 const int OCC_SERVER_TXN_BUF_OFFSET   = OCC_SERVER_TXN_IDX_OFFSET   + sizeof(occ_idx_num_t);
 
 
-#define OCC_LOCK_ON  0
-#define OCC_LOCK_OFF 1
+#define OCC_LOCK_OFF 0
+#define OCC_LOCK_ON  1
 
 
 
