@@ -122,11 +122,18 @@ private:
     bool pthread_fetch_and_add     (int mach_id, int type, idx_key_t key, idx_value_t* value);
 
 
-//    int listen_socket(comm_identifer *ident);
-//
-//    comm_identifer start_socket(int mach_id);
-//    comm_identifer accept_socket(comm_identifer socket, comm_addr* addr, comm_length* length);
-//    int close_socket(comm_identifer ident);
+    int listen_socket(comm_identifer *ident);
+
+    comm_identifer start_socket(int mach_id);
+
+    comm_identifer accept_socket(comm_identifer socket, comm_addr* addr, comm_length* length);
+
+    int close_socket(comm_identifer ident);
+
+    int get_transaction_socket(int id);
+
+    int get_operation_socket(int id);
+
 
     bool get_timestamp(idx_value_t* value);
     bool get_entry(idx_key_t key, TimestampEntry *value, comm_identifer ident);

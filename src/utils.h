@@ -10,17 +10,21 @@
 #include <cstring>
 #include "defines.h"
 
-#define SOCKET_TRANCTION 9000
-#define SOCKET_OPERATION 9001
+
 #define MAXLINE 4096
 
 
 enum RC {OK, ABORT, COMMIT, WAIT, ERROR};
 
-enum CC_ALGO{ALGO_TWOPL, ALGO_OCC, ALGO_MVCC, ALGO_TIMESTAMP};
+enum CC_ALGO {ALGO_TWOPL, ALGO_OCC, ALGO_MVCC, ALGO_TIMESTAMP};
 
 enum Operation {ALGO_READ, ALGO_WRITE, ALGO_ADD, ALGO_SUB};
 
+enum Socket_Type {MSG_SCK, META_SERVER_SCK, TXN_SCK };
+
+#define TXN_SCK_NUM 9000
+#define MSG_SCK_NUM 9001
+#define META_SERVER_SCK_NUM 9002
 
 
 struct Command{

@@ -33,6 +33,10 @@
 #define OCC_WRITE_KEY_BUF 4
 #define OCC_WRITE_SERVER_TXN 5
 
+#define OCC_SEND_TIMESTAMP 0
+#define OCC_SEND_VALI_TIMESTAMP 1
+#define OCC_SEND_CHECK_TRANS 2
+
 
 #define OCC_READ_PHASE 0
 #define OCC_VAL_PHASE 1
@@ -66,15 +70,7 @@ struct OccDataEntry {
 #endif
 };
 
-#define OCC_DATA_BUF(id, buf_list, sz) ({   \
-    char* buf;                     \
-    if(id == 0) {                  \
-        buf = buf_list[id];        \
-    } else {                       \
-        buf = buf_list[id];        \
-    }                              \
-    buf;                           \
-})
+#define OCC_DATA_BUF(id, buf, sz) buf
 
 
 
@@ -85,24 +81,24 @@ struct OccTxnEntry {
     int abort;
 };
 
-#define OCC_TXN_LOCK(id, buf_list, sz) ({   \
-    char* buf;                     \
+#define OCC_TXN_LOCK(id, buf, sz) ({   \
+    char* __buf;                     \
     if(id == 0) {                  \
-        buf = buf_list[id] + sz / 4;        \
+        __buf = buf + sz / 4;        \
     } else {                       \
-        buf = buf_list[id] + sz / 3;        \
+        __buf = buf + sz / 3;        \
     }                              \
-    buf;                           \
+    __buf;                           \
 })
 
-#define OCC_TXN_BUF(id, buf_list, sz) ({   \
-    char* buf;                     \
+#define OCC_TXN_BUF(id, buf, sz) ({   \
+    char* __buf;                     \
     if(id == 0) {                  \
-        buf = buf_list[id] + sz / 4 + sizeof(int);        \
+        __buf = buf + sz / 4 + sizeof(int);        \
     } else {                       \
-        buf = buf_list[id] + sz / 3 + sizeof(int);        \
+        __buf = buf + sz / 3 + sizeof(int);        \
     }                              \
-    buf;                           \
+    __buf;                           \
 })
 
 
@@ -112,25 +108,25 @@ struct OccKeyEntry {
 
 #define OCC_KEY_TOTAL_IDX ((OCC_SEGMENT_SIZE - sizeof(occ_idx_num_t)) / sizeof(OccKeyEntry))
 
-#define OCC_KEY_IDX(id, buf_list, sz) ({   \
-    char* buf;                     \
+#define OCC_KEY_IDX(id, buf, sz) ({   \
+    char* _buf;                     \
     if(id == 0) {                  \
-        buf = buf_list[id] + sz * 2 / 4;        \
+        _buf = buf + sz * 2 / 4;        \
     } else {                       \
-        buf = buf_list[id] + sz * 2/ 3;        \
+        _buf = buf + sz * 2/ 3;        \
     }                              \
-    buf;                           \
+    _buf;                           \
 })
 
 
-#define OCC_KEY_BUF(id, buf_list, sz) ({   \
-    char* buf;                     \
+#define OCC_KEY_BUF(id, buf, sz) ({   \
+    char* _buf;                     \
     if(id == 0) {                  \
-        buf = buf_list[id] + sz * 2 / 4 + sizeof(occ_idx_num_t);        \
+        _buf = buf + sz * 2 / 4 + sizeof(occ_idx_num_t);        \
     } else {                       \
-        buf = buf_list[id] + sz * 2 / 3 + sizeof(occ_idx_num_t);        \
+        _buf = buf + sz * 2 / 3 + sizeof(occ_idx_num_t);        \
     }                              \
-    buf;                           \
+    _buf;                           \
 })
 
 
@@ -156,27 +152,31 @@ const int OCC_SERVER_TXN_BUF_OFFSET   = OCC_SERVER_TXN_IDX_OFFSET   + sizeof(occ
 
 
 
-#define OCC_SERVER_LOCK(buf_list, sz) ({   \
-    char* buf = buf_list[0] + sz * 3 / 4 + OCC_SERVER_LOCK_OFFSET;        \
-    buf;                           \
+#define OCC_SERVER_LOCK(id, buf, sz) ({   \
+    assert(id == 0);                 \
+    char* __buf = buf + sz * 3 / 4 + OCC_SERVER_LOCK_OFFSET;        \
+    __buf;                           \
 })
 
-#define OCC_SERVER_TIMESTAMP(buf_list, sz) ({   \
-    char* buf = buf_list[0] + sz * 3 / 4 + OCC_SERVER_TIMESTAMP_OFFSET ;   \
-    buf;                           \
-})
-
-
-#define OCC_SERVER_TXN_IDX(buf_list, sz) ({   \
-    char* buf = buf_list[0] + sz * 3 / 4 + OCC_SERVER_TXN_IDX_OFFSET;   \
-    buf;                           \
+#define OCC_SERVER_TIMESTAMP(id, buf, sz) ({   \
+    assert(id == 0);                 \
+    char* __buf = buf + sz * 3 / 4 + OCC_SERVER_TIMESTAMP_OFFSET ;   \
+    __buf;                           \
 })
 
 
+#define OCC_SERVER_TXN_IDX(id, buf, sz) ({   \
+    assert(id == 0);                 \
+    char* __buf = buf + sz * 3 / 4 + OCC_SERVER_TXN_IDX_OFFSET;   \
+    __buf;                           \
+})
 
-#define OCC_SERVER_TXN_BUF(buf_list, sz) ({   \
-    char* buf = buf_list[0] + sz * 3 / 4 + OCC_SERVER_TXN_BUF_OFFSET; \
-    buf;                           \
+
+
+#define OCC_SERVER_TXN_BUF(id, buf, sz) ({   \
+    assert(id == 0);                 \
+    char* __buf = buf + sz * 3 / 4 + OCC_SERVER_TXN_BUF_OFFSET; \
+    __buf;                           \
 })
 
 
@@ -227,14 +227,25 @@ private:
     bool pthread_compare_and_swap(int mach_id, int type, idx_key_t key, idx_value_t old_value, idx_value_t new_value);
     bool pthread_fetch_and_add  (int mach_id, int type, idx_key_t key, idx_value_t* value);
 
+public:
+    static int listen_socket(int my_id, Socket_Type type, comm_identifer *ident);
 
+    static comm_identifer start_socket(int mach_id, Socket_Type type);
+
+    static comm_identifer accept_socket(comm_identifer socket, comm_addr* addr, comm_length* length);
+
+    static int close_socket(comm_identifer ident);
+
+    static uint16_t get_socket(int id, Socket_Type type );
+
+private:
     bool get_entry(idx_key_t key, OccDataEntry *value, comm_identifer ident);
 
     bool write_entry(idx_key_t key, idx_value_t value, comm_identifer ident);
 
     bool get_timestamp(occ_time_t *value);
 
-    bool get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t m_start_t, occ_time_t m_vali_t);
+    bool get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t m_start_t);
 
 
     bool store_transaction_info(occ_time_t read_time, std::unordered_set<idx_key_t>* read_set,
@@ -247,14 +258,27 @@ private:
             std::unordered_set<idx_key_t >* write_set_peer);
 
     bool update_transaction_info(occ_time_t read_time, occ_time_t end_time, int abort);
+
+    bool msg_loop();
+
+    bool setup_meta_server();
+
+    static void* server_thread(void* buf);
+
+};
+
+struct ServerInitInfo {
+    int server_id;
+    char* server_buf;
+    int buf_sz;
+    OccServer* this_ptr;
 };
 
 
-void* timestamp_generator_thread(void* buf);
+
 
 static inline bool common_elements(std::unordered_set<idx_key_t> set1, std::unordered_set<idx_key_t> set2){
     auto it = std::find_first_of(set1.begin(), set1.end(), set2.begin(), set2.end());
-
     return it != set1.end();
 }
 
