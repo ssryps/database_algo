@@ -122,8 +122,8 @@ bool OccServer::pthread_read(int mach_id, int type, idx_key_t key, char* value, 
         }
 
         case OCC_READ_TXN_BUF: {
-            OccTxnEntry* server_txn_buf = (OccTxnEntry *)OCC_TXN_BUF(mach_id, this->global_buf[mach_id], this->buf_sz);
-            std::memcpy(value, &(server_txn_buf[key]), sizeof(OccTxnEntry));
+            OccTxnEntry* txn_buf = (OccTxnEntry *)OCC_TXN_BUF(mach_id, this->global_buf[mach_id], this->buf_sz);
+            std::memcpy(value, &(txn_buf[key]), sizeof(OccTxnEntry));
 
             (*sz) = sizeof(OccTxnEntry);
             break;
@@ -225,12 +225,13 @@ bool OccServer::pthread_write(int mach_id, int type, idx_key_t key, char* value,
 bool OccServer::pthread_send(int mach_id, int type, char *buf, int sz, comm_identifer ident) {
 
     // put content into buffer
-    char sendline[256];
-    memset(sendline, 0, 256);
+    int prefix_len = 2;
+
+    char *sendline = new char[sz + prefix_len];
+    memset(sendline, 0, sz + prefix_len);
 
     sendline[0] = this->server_id;
     sendline[1] = type;
-    int prefix_len = 2;
     memcpy(sendline + prefix_len, buf, sz);
 
     if(send(ident, sendline, sz + prefix_len, 0) < 0){
@@ -353,8 +354,11 @@ int OccServer::listen_socket(int my_id, Socket_Type type, comm_identifer *ident)
         servaddr.sin_family = AF_INET;
         servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
         servaddr.sin_port = htons(get_socket(my_id, type));
+//        std::cout << "sin port" << get_socket(my_id, type) << std::endl;
+
         if(bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1){
             printf("bind socket error: %s(errno: %d)\n",strerror(errno),errno);
+            assert(false);
             return 0;
         }
 
@@ -377,7 +381,8 @@ comm_identifer OccServer::start_socket(int mach_id, Socket_Type type){
         struct sockaddr_in servaddr;
 
         if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-            printf("creat socket error: %s(errno: %d)\n", strerror(errno),errno);
+            printf("create socket error: %s(errno: %d)\n", strerror(errno),errno);
+            assert(false);
             return 0;
         }
 
@@ -385,6 +390,7 @@ comm_identifer OccServer::start_socket(int mach_id, Socket_Type type){
         servaddr.sin_family = AF_INET;
         servaddr.sin_port = htons(get_socket(mach_id, type));
         if(inet_pton(AF_INET, "127.0.0.1", &servaddr.sin_addr) <= 0){
+            assert(false);
             printf("inet_pton error for %s\n", "127.0.0.1");
             return false;
         }
@@ -438,7 +444,7 @@ uint16_t OccServer::get_socket(int id, Socket_Type type) {
     }
 
     if(type == TXN_SCK)
-        return TXN_SCK_NUM + id * 10;
+        return (uint16_t )(TXN_SCK_NUM + id * 10);
 
     return 0;
 }
@@ -469,9 +475,32 @@ bool OccServer::init(int id, char **data_buf, int sz) {
 #endif
 
 
-bool OccServer::get_entry(idx_key_t key, OccDataEntry *value, comm_identifer ident) {
+bool OccServer::get_entry(idx_key_t key, OccDataEntry *value) {
 #ifdef TWO_SIDE
+    comm_identifer msg_comm_iden = start_socket(get_machine_index(key), MSG_SCK);
 
+    int request_sz = sizeof(idx_key_t);
+    char* request = new char[request_sz];
+
+    *((idx_key_t *) request) = key;
+
+    if(!send_i(get_machine_index(key), OCC_SEND_GET_ENTRY, request, request_sz, msg_comm_iden)){
+        printf("get_entry: send_i error\n");
+    }
+
+    int mach_id, type_id, sz;
+    char* buf;
+    if(!recv_i(&mach_id, &type_id, &buf, &sz, msg_comm_iden)){
+        printf("get_entry: recv_i error\n");
+    }
+    assert(sz == sizeof(struct OccDataEntry));
+    assert(type_id == OCC_SEND_GET_ENTRY);
+
+    memcpy(value, buf, sz);
+
+    delete(buf);
+    close_socket(msg_comm_iden);
+    return true;
 #else
 
     int sz;
@@ -482,8 +511,32 @@ bool OccServer::get_entry(idx_key_t key, OccDataEntry *value, comm_identifer ide
 
 }
 
-bool OccServer::write_entry(idx_key_t key, idx_value_t value, comm_identifer ident) {
+bool OccServer::write_entry(idx_key_t key, idx_value_t value) {
 #ifdef TWO_SIDE
+    comm_identifer msg_comm_iden = start_socket(get_machine_index(key), MSG_SCK);
+
+    int msg_sz = sizeof(key) + sizeof(value);
+    char* msg = new char[msg_sz];
+    memcpy(msg, &key, sizeof(key));
+    memcpy(msg + sizeof(key), &value, sizeof(value));
+
+
+    if(!send_i(get_machine_index(key), OCC_SEND_WRITE_ENTRY, msg, msg_sz, msg_comm_iden)){
+        printf("write_entry: send_i error\n");
+    }
+
+    int mach_id, type_id, sz;
+    char* buf;
+    if(!recv_i(&mach_id, &type_id, &buf, &sz, msg_comm_iden)){
+        printf("write_entry: recv_i error\n");
+    }
+
+    assert(type_id == OCC_SEND_WRITE_ENTRY);
+
+    delete(buf);
+    close_socket(msg_comm_iden);
+
+    return true;
 
 #else
     bool ok;
@@ -509,12 +562,14 @@ bool OccServer::get_timestamp(occ_time_t *value) {
     char* msg = new char[1];
     if(!send_i(0, OCC_SEND_TIMESTAMP, msg, msg_sz, server_comm_iden)){
         printf("get_timestamp: send_i error\n");
+        assert(false);
     }
 
     int mach_id, type_id, sz;
     char* buf;
     if(!recv_i(&mach_id, &type_id, &buf, &sz, server_comm_iden)){
         printf("get_timestamp: recv_i error\n");
+        assert(false);
     }
 
     assert(type_id == OCC_SEND_TIMESTAMP);
@@ -522,6 +577,7 @@ bool OccServer::get_timestamp(occ_time_t *value) {
 
     memcpy(value, buf, sz);
     delete(buf);
+    close_socket(server_comm_iden);
 
     return true;
 
@@ -569,6 +625,7 @@ bool OccServer::get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t
     memcpy(value, buf, sz);
 
     delete(buf);
+    close_socket(server_comm_iden);
 
     return true;
 #else
@@ -610,27 +667,34 @@ bool OccServer::get_validation_timestamp(occ_time_t *value, int m_id, occ_time_t
 bool OccServer::store_transaction_info(occ_time_t read_time, std::unordered_set<idx_key_t> *read_set,
                                        std::unordered_set<idx_key_t> *write_set) {
 #ifdef TWO_SIDE
-    comm_identifer server_comm_iden = start_socket(0, META_SERVER_SCK);
+    comm_identifer msg_comm_iden = start_socket(this->server_id, MSG_SCK);
 
-    int msg_sz = sizeof(idx_key_t) * write_set->size();
-    char* msg = new char[msg_sz];
-    memcpy(msg, &m_id, sizeof(int));
-    memcpy(msg + sizeof(int), &m_start_t, sizeof(occ_time_t));
+    int request_sz = sizeof(occ_time_t) + sizeof(idx_key_t) * write_set->size();
+    char* request = new char[request_sz];
 
-    if(!send_i(0, OCC_SEND_VALI_TIMESTAMP, msg, msg_sz, server_comm_iden)){
-        printf("get_validation_timestamp: send_i error\n");
+    *((occ_time_t*) request) = read_time;
+
+    int i = 0;
+    for(auto ele: *write_set){
+        ((idx_key_t *) (request + sizeof(occ_time_t)))[i] = ele;
+        i ++;
+    }
+
+    if(!send_i(0, OCC_SEND_STORE_TXN_INFO, request, request_sz, msg_comm_iden)){
+        printf("store_transaction_info: send_i error\n");
+        assert(false);
     }
 
     int mach_id, type_id, sz;
     char* buf;
-    if(!recv_i(&mach_id, &type_id, &buf, &sz, server_comm_iden)){
-        printf("get_validation_timestamp: recv_i error\n");
+    if(!recv_i(&mach_id, &type_id, &buf, &sz, msg_comm_iden)){
+        printf("store_transaction_info: recv_i error\n");
+        assert(false);
     }
 
-    assert(sz == sizeof(occ_time_t));
-    memcpy(value, buf, sz);
-
+    assert(type_id == OCC_SEND_STORE_TXN_INFO);
     delete(buf);
+    close_socket(msg_comm_iden);
 
     return true;
 #else
@@ -699,6 +763,7 @@ bool OccServer::get_check_trans(occ_time_t read_time, occ_time_t validation_time
     }
 
     delete(buf);
+    close_socket(server_comm_iden);
 
     return true;
 #else
@@ -729,38 +794,36 @@ bool OccServer::get_check_trans(occ_time_t read_time, occ_time_t validation_time
 
 }
 
-bool OccServer::get_trans_info(int peer, occ_time_t start_time_peer, int *abort, occ_time_t *end_time_peer,
+bool OccServer::get_trans_info(int peer, occ_time_t start_time_peer, int *abort_peer, occ_time_t *end_time_peer,
         std::unordered_set<idx_key_t> *write_set_peer) {
 #ifdef TWO_SIDE
-    comm_identifer server_comm_iden = start_socket(peer, MSG_SCK);
+    comm_identifer msg_comm_iden = start_socket(peer, MSG_SCK);
 
     occ_time_t t = start_time_peer;
 
-    if(!send_i(0, OCC_SEND_CHECK_TRANS, (char*)t, sizeof(occ_time_t) * 2, server_comm_iden)){
+    if(!send_i(0, OCC_SEND_TRANS_INFO, (char*)&t, sizeof(occ_time_t), msg_comm_iden)){
         printf("get_check_trans: send_i error\n");
     }
 
     int mach_id, type_id, sz;
     char* buf;
-    if(!recv_i(&mach_id, &type_id, &buf, &sz, server_comm_iden)){
+    if(!recv_i(&mach_id, &type_id, &buf, &sz, msg_comm_iden)){
         printf("get_check_trans: recv_i error\n");
     }
 
-    assert(sz % (sizeof(int) + sizeof(occ_time_t)) == 0);
-    int peer_sz = sz / (sizeof(int) + sizeof(occ_time_t));
+    assert(type_id == OCC_SEND_TRANS_INFO);
+    assert((sz - sizeof(int) - sizeof(occ_time_t)) % sizeof(idx_key_t) == 0);
 
-    int* int_start = (int*) buf;
-    occ_time_t *time_start = (occ_time_t*) (buf + sizeof(int) * peer_sz);
-
-    for(int i = 0; i < peer_sz; i++) {
-        mach_set_peer->push_back(int_start[i]);
-    }
-
-    for(int i = 0; i < peer_sz; i++) {
-        start_time_set_peer->push_back(time_start[i]);
+    (*end_time_peer) = *((occ_time_t *)(buf));
+    (*abort_peer) = *((int *)(buf + sizeof(occ_time_t)));
+    idx_key_t *k_pos = (idx_key_t *)(buf + sizeof(occ_time_t) + sizeof(int));
+    int ele_sz = (sz - sizeof(int) - sizeof(occ_time_t)) / sizeof(idx_key_t);
+    for(int i = 0; i < ele_sz ; i++){
+        write_set_peer->insert(k_pos[i]);
     }
 
     delete(buf);
+    close_socket(msg_comm_iden);
 
     return true;
 #else
@@ -773,7 +836,7 @@ bool OccServer::get_trans_info(int peer, occ_time_t start_time_peer, int *abort,
     assert(sz == sizeof(OccTxnEntry));
 
     (*end_time_peer) = txn_entry.end_time;
-    (*abort) = txn_entry.abort;
+    (*abort_peer) = txn_entry.abort;
 
     int beg = txn_entry.write_begin_ptr, ed = txn_entry.write_end_ptr;
     for(int i = beg; i != ed; i ++, i %= OCC_KEY_TOTAL_IDX){
@@ -794,15 +857,46 @@ bool OccServer::get_trans_info(int peer, occ_time_t start_time_peer, int *abort,
 
 bool OccServer::update_transaction_info(occ_time_t read_time, occ_time_t end_time, int abort) {
 
-#ifdef TWO_SIDE
-
-#else
-
-    int msg_sz = sizeof(occ_time_t) + sizeof(int);
+    int msg_sz = sizeof(occ_time_t) + sizeof(occ_time_t) + sizeof(int);
     char* msg = new char[msg_sz];
-    memcpy(msg, &end_time, sizeof(occ_time_t));
-    memcpy(msg + sizeof(occ_time_t), &abort, sizeof(int));
+    memcpy(msg, &read_time, sizeof(occ_time_t));
+    memcpy(msg + sizeof(occ_time_t), &end_time, sizeof(occ_time_t));
+    memcpy(msg + sizeof(occ_time_t) * 2, &abort, sizeof(int));
 
+#ifdef TWO_SIDE
+    comm_identifer msg_comm_iden = start_socket(server_id, MSG_SCK);
+
+    if(!send_i(0, OCC_SEND_UPDATE_TXN_INFO, msg, msg_sz, msg_comm_iden)){
+        printf("get_check_trans: send_i error\n");
+    }
+
+    int mach_id, type_id, sz;
+    char* buf;
+    if(!recv_i(&mach_id, &type_id, &buf, &sz, msg_comm_iden)){
+        printf("get_check_trans: recv_i error\n");
+    }
+
+    assert(type_id == OCC_SEND_UPDATE_TXN_INFO);
+    delete(buf);
+    close_socket(msg_comm_iden);
+
+
+    comm_identifer server_comm_iden = start_socket(0, META_SERVER_SCK);
+
+    if(!send_i(0, OCC_SEND_UPDATE_TXN_INFO, msg, msg_sz, server_comm_iden)){
+        printf("get_check_trans: send_i error\n");
+    }
+
+    if(!recv_i(&mach_id, &type_id, &buf, &sz, server_comm_iden)){
+        printf("get_check_trans: recv_i error\n");
+    }
+
+    assert(type_id == OCC_SEND_UPDATE_TXN_INFO);
+    delete(buf);
+    close_socket(server_comm_iden);
+
+    return true;
+#else
     // update local info
     while(!compare_and_swap(this->server_id, OCC_COMPARE_AND_SWAP_TXN_LOCK , 0, 0, 1))
         ;
@@ -822,19 +916,20 @@ bool OccServer::update_transaction_info(occ_time_t read_time, occ_time_t end_tim
     assert(ok);
 
     OccServerTxnEntry server_txn_entry;
-    int i;
-    for(i = txn_idx - 1; i >= 0; i--) {
+
+    for(int i = txn_idx - 1; i >= 0; i--) {
         int txn_sz;
         read(0, OCC_READ_SERVER_TXN_BUF, i, (char*)&server_txn_entry, &txn_sz);
         assert(txn_sz == sizeof(OccServerTxnEntry));
         if(server_txn_entry.start_time == read_time) {
+            assert(i >= 0);
+            server_txn_entry.end_time = end_time;
+            server_txn_entry.abort = abort;
+
             break;
         }
     }
-    assert(i >= 0);
 
-    server_txn_entry.end_time = end_time;
-    server_txn_entry.abort = abort;
     ok = write(0, OCC_WRITE_SERVER_TXN, i, (char*)&server_txn_entry, sizeof(OccServerTxnEntry));
     assert(ok);
 
@@ -844,6 +939,46 @@ bool OccServer::update_transaction_info(occ_time_t read_time, occ_time_t end_tim
 
 #endif
 }
+
+
+TransactionResult OccServer::send_transaction_to_server(Transaction* transaction){
+    assert(this->server_id < 0);
+    int des_server = ~(this->server_id);
+
+    comm_identifer msg_comm_iden = start_socket(des_server, TXN_SCK);
+
+    int txn_sz = transaction->commands.size();
+    Command* msg = new Command[txn_sz];
+    for(int i = 0; i < txn_sz; i++){
+        memcpy(&(msg[i]), &(transaction->commands[i]), sizeof(Command));
+    }
+
+
+    if(!send_i(des_server, OCC_SEND_TXN, (char*)msg, txn_sz * sizeof(Command), msg_comm_iden)){
+        printf("get_check_trans: send_i error\n");
+    }
+
+    int mach_id, type_id, sz;
+    char* buf;
+    if(!recv_i(&mach_id, &type_id, &buf, &sz, msg_comm_iden)){
+        printf("get_check_trans: recv_i error\n");
+    }
+
+    assert(type_id == OCC_SEND_TXN);
+    TransactionResult result;
+    result.is_success = *(bool*)buf;
+    int r_sz = (sz - sizeof(bool)) / sizeof(idx_value_t);
+    for(int i = 0; i < r_sz; i++){
+        idx_value_t *pos = (idx_value_t*)(buf + sizeof(bool));
+        result.results.push_back(pos[i]);
+    }
+
+    delete(buf);
+    close_socket(msg_comm_iden);
+
+    return result;
+}
+
 
 
 TransactionResult OccServer::handle(Transaction* transaction){
@@ -867,7 +1002,7 @@ TransactionResult OccServer::handle(Transaction* transaction){
         printf("%d read time %d\n", this->server_id, read_time);
     }
 
-    for(int i = 0; i < transaction->commands.size(); i ++ ) {
+    for(int i = 0; i < transaction->commands.size(); i ++) {
         Command command = transaction->commands[i];
         switch (command.operation) {
             case ALGO_WRITE: {
@@ -887,13 +1022,10 @@ TransactionResult OccServer::handle(Transaction* transaction){
                 } else {
                     OccDataEntry tmp_entry;
 
-                    //comm_identifer ident = start_socket(get_machine_index(command.key));
-                    get_entry(command.key, &tmp_entry, ident);
+                    get_entry(command.key, &tmp_entry);
                     value = tmp_entry.value;
-
                     local_db[command.key] = value;
 
-                    close_socket(ident);
                 }
 
                 read_set.insert(command.key);
@@ -958,11 +1090,13 @@ TransactionResult OccServer::handle(Transaction* transaction){
 
         if(end_time_peer < validation_time){
             if(common_elements(write_set_peer, read_set)){
+                printf("handle: conflict 1\n");
                 abort = true;
                 break;
             }
         } else {
             if(common_elements(write_set_peer, read_set) || common_elements(write_set_peer, write_set)){
+                printf("handle: conflict 2\n");
                 abort = true;
                 break;
             }
@@ -980,7 +1114,7 @@ TransactionResult OccServer::handle(Transaction* transaction){
     for(auto it = local_db.begin(); it != local_db.end(); it++){
         idx_key_t key = (*it).first;
         idx_value_t value = (*it).second;
-        write_entry(key, value, 0);
+        write_entry(key, value);
     }
 
     occ_time_t end_time;
@@ -1004,6 +1138,7 @@ int OccServer::run() {
     if(this->server_id == 0) {
         setup_meta_server();
     }
+    setup_txn_server();
 
     msg_loop();
 
@@ -1024,13 +1159,12 @@ bool OccServer::setup_meta_server() {
     init_info->buf_sz = this->buf_sz;
     init_info->this_ptr = this;
 
-    pthread_create(s_threads, NULL, server_thread, (void *)init_info);
+    pthread_create(s_threads, NULL, meta_thread, (void *) init_info);
 
 }
 
 
-
-void* OccServer::server_thread(void* buf) {
+void* OccServer::meta_thread(void *buf) {
     ServerInitInfo *init_info = (ServerInitInfo*) buf;
 
     assert(init_info->server_id == 0);
@@ -1068,10 +1202,12 @@ void* OccServer::server_thread(void* buf) {
                     occ_time_t t = *timestamp;
                     (*timestamp) ++;
 
-                    if (init_info->this_ptr->send_i(init_info->server_id, OCC_SEND_TIMESTAMP, (char *)&t,
+                    if (init_info->this_ptr->send_i(mach_i, OCC_SEND_TIMESTAMP, (char *)&t,
                             sizeof(occ_time_t), conn_socket) < 0) {
-                        printf("server_thread: send_i error %s\n", strerror(errno));
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
                     }
+
+                    end_loop = true;
                     break;
                 }
 
@@ -1096,10 +1232,12 @@ void* OccServer::server_thread(void* buf) {
                     txn_buf[idx].end_time = -1;
                     txn_buf[idx].abort = OCC_TXN_RUNNING;
 
-                    if (init_info->this_ptr->send_i(init_info->server_id, OCC_SEND_VALI_TIMESTAMP, (char *)&t,
+                    if (init_info->this_ptr->send_i(mach_i, OCC_SEND_VALI_TIMESTAMP, (char *)&t,
                                                     sizeof(occ_time_t), conn_socket) < 0) {
-                        printf("server_thread: send_i error %s\n", strerror(errno));
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
                     }
+
+                    end_loop = true;
                     break;
                 }
 
@@ -1111,14 +1249,14 @@ void* OccServer::server_thread(void* buf) {
                     auto __idx = (occ_idx_num_t *)OCC_SERVER_TXN_IDX(init_info->server_id, des_buf, init_info->buf_sz);
                     occ_idx_num_t txn_idx = *__idx;
 
-                    std::vector<int>* mach_set_peer;
-                    std::vector<occ_time_t >* start_time_set_peer;
+                    std::vector<int>* mach_set_peer = new std::vector<int>;
+                    std::vector<occ_time_t >* start_time_set_peer = new std::vector<occ_time_t >;
 
 
                     auto txn_buf = (OccServerTxnEntry*)OCC_SERVER_TXN_BUF(init_info->server_id, des_buf, init_info->buf_sz);
                     for(int i = txn_idx - 1; i >= 0; i--) {
                         OccServerTxnEntry *txn = &(txn_buf[i]);
-                        if(txn->ts >= validation_time) continue;
+                        if(txn->ts >= validation_time || txn->abort == OCC_TXN_ABORT) continue;
                         if(txn->end_time == -1 || txn->end_time > read_time) {
                             mach_set_peer->push_back(txn->mach_id);
                             start_time_set_peer->push_back(txn->start_time);
@@ -1139,18 +1277,48 @@ void* OccServer::server_thread(void* buf) {
                         time_start[i] = (*start_time_set_peer)[i];
                     }
 
-                    if (init_info->this_ptr->send_i(init_info->server_id, OCC_SEND_CHECK_TRANS, reply,
+                    if (init_info->this_ptr->send_i(mach_i, OCC_SEND_CHECK_TRANS, reply,
                                                     reply_sz, conn_socket) < 0) {
-                        printf("server_thread: send_i error %s\n", strerror(errno));
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
                     }
+
+                    end_loop = true;
                     break;
                 }
 
-//                case TS_RECV_FETCH_AND_ADD: {
-//
-//                    break;
-//                }
-//
+                case OCC_SEND_UPDATE_TXN_INFO: {
+                    int correct_sz = sizeof(occ_time_t) + sizeof(occ_time_t) + sizeof(int);
+                    assert(msg_sz == correct_sz);
+
+                    occ_idx_num_t* txn_idx = (occ_idx_num_t*)OCC_SERVER_TXN_IDX(init_info->server_id,
+                            init_info->server_buf, init_info->buf_sz);
+
+                    occ_time_t read_time = *((occ_time_t*) request_i);
+                    occ_time_t end_time = *((occ_time_t*) (request_i + sizeof(occ_time_t)));
+                    int abort = *((occ_time_t*) (request_i + sizeof(occ_time_t) * 2));
+
+                    auto server_txn_buf = (OccServerTxnEntry*)OCC_SERVER_TXN_BUF(init_info->server_id, init_info->server_buf, init_info->buf_sz);
+
+                    for(int i = *txn_idx - 1; i >= 0 ; i--){
+                        if(server_txn_buf[i].start_time == read_time) {
+                            assert(i >= 0);
+                            server_txn_buf[i].end_time = end_time;
+                            server_txn_buf[i].abort = abort;
+
+                            break;
+                        }
+                    }
+
+                    int reply_sz = 0;
+                    char* reply = new char;
+                    if (init_info->this_ptr->send_i(mach_i, OCC_SEND_UPDATE_TXN_INFO, reply, reply_sz, conn_socket) < 0) {
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
+                    }
+
+                    end_loop = true;
+                    break;
+                }
+
 //                case TS_RECV_CLOSE: {
 //                    end_loop = true;
 //                    break;
@@ -1168,6 +1336,96 @@ void* OccServer::server_thread(void* buf) {
 
 }
 
+
+bool OccServer::setup_txn_server() {
+    pthread_t *s_threads = new pthread_t;
+
+    ServerInitInfo *init_info = new ServerInitInfo;
+    init_info->server_id = this->server_id;
+    init_info->server_buf = this->global_buf[this->server_id];
+    init_info->buf_sz = this->buf_sz;
+    init_info->this_ptr = this;
+
+    pthread_create(s_threads, NULL, txn_thread, (void *) init_info);
+}
+
+void* OccServer::txn_thread(void *buf) {
+    ServerInitInfo *init_info = (ServerInitInfo*) buf;
+
+
+    comm_identifer meta_server_socket;
+    if(OccServer::listen_socket(init_info->server_id, TXN_SCK, &meta_server_socket) < 0){
+        printf("txn_thread: can't listen msg sck\n");
+        assert(false);
+    }
+
+    while (true) {
+        comm_addr client_addr;
+        comm_length length = sizeof(client_addr);
+        comm_identifer conn_socket = accept_socket(meta_server_socket, &client_addr, &length);
+        if(conn_socket < 0) {
+            std::cout << "txn_thread: can't accept socket" << std::endl;
+            exit(1);
+        }
+
+        int mach_i, type_i, msg_sz;
+        char* request_i;
+
+        while(true) {
+            bool end_loop = false;
+
+            bool recv_msg = init_info->this_ptr->recv_i(&mach_i, &type_i, &request_i, &msg_sz, conn_socket);
+            if (!recv_msg) {
+                printf("txn_thread: can't recv msg\n");
+            }
+
+            switch (type_i) {
+                case OCC_SEND_TXN: {
+                    assert(msg_sz % sizeof(Command) == 0);
+                    int txn_sz = msg_sz / sizeof(Command);
+                    Command* txn_buf = (Command*) request_i;
+
+                    Transaction n_txn;
+                    for(int i = 0; i < txn_sz; i++){
+                        Command n_cmd;
+                        memcpy(&n_cmd, &(txn_buf[i]), sizeof(Command));
+                        n_txn.commands.push_back(n_cmd);
+                    }
+
+                    TransactionResult result = init_info->this_ptr->handle(&n_txn);
+
+                    int reply_sz = sizeof(result.is_success) + result.results.size() * sizeof(idx_value_t);
+                    char* reply = new char[reply_sz];
+
+                    *((bool*)reply) = result.is_success;
+                    for(int i = 0; i < result.results.size(); i++){
+                        idx_value_t *pos = (idx_value_t*)(reply + sizeof(bool));
+                        pos[i] = result.results[i];
+                    }
+
+
+                    if (init_info->this_ptr->send_i(mach_i, OCC_SEND_TXN, reply, reply_sz, conn_socket) < 0) {
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
+                        assert(false);
+                    }
+
+
+                    end_loop = true;
+                    break;
+                }
+
+
+                default: {
+                    assert(false);
+                    break;
+                }
+
+            }
+            if(end_loop)break;
+        }
+    }
+
+}
 
 bool OccServer::msg_loop() {
     comm_identifer msg_socket;
@@ -1195,46 +1453,149 @@ bool OccServer::msg_loop() {
                 printf("msg_loop: can't recv msg\n");
             }
 
-            char* des_buf = (this->global_buf[this->server_id]);
-
             switch (type_i) {
+                case OCC_SEND_TRANS_INFO: {
+                    assert(msg_sz == sizeof(occ_time_t));
+                    occ_time_t *t = (occ_time_t*) request_i;
+                    auto txn_buf = (OccTxnEntry*)OCC_TXN_BUF(server_id, global_buf[server_id], buf_sz);
 
-                case TS_RECV_WRITE: {
-                    idx_key_t *key = reinterpret_cast<idx_key_t *>(request_i);
+                    occ_time_t end_time_peer = txn_buf[*t].end_time;
+                    int abort_peer = txn_buf[*t].abort;
 
-                    idx_value_t result[3];
-                    memcpy(result, request_i + sizeof(idx_key_t), sizeof(idx_value_t) * 3);
-                    des_buf->entries[(*key) % MAX_DATA_PER_MACH].value = result[0];
-                    des_buf->entries[(*key) % MAX_DATA_PER_MACH].lastRead = result[1];
-                    des_buf->entries[(*key) % MAX_DATA_PER_MACH].lastWrite = result[2];
-//                std::cout << "write " << (*key) << " "  << result[0] << " " << result[1] << " " << result[2] << std::endl;
+                    std::vector<idx_key_t> write_set_peer;
+                    int beg = txn_buf[*t].write_begin_ptr, ed = txn_buf[*t].write_end_ptr;
+                    for(int i = beg; i != ed; i ++, i %= OCC_KEY_TOTAL_IDX){
+                        OccKeyEntry* key_buf = (OccKeyEntry*)OCC_KEY_BUF(this->server_id,
+                                                                         this->global_buf[this->server_id], this->buf_sz);
+                        write_set_peer.push_back(key_buf[i].key);
+                    }
+
+                    int reply_sz = sizeof(occ_time_t) + sizeof(int) + sizeof(idx_key_t) * write_set_peer.size();
+                    char* reply = new char[reply_sz];
+                    *((occ_time_t *)(reply)) = end_time_peer;
+                    *((int *)(reply + sizeof(occ_time_t))) = abort_peer;
+                    idx_key_t *k_pos = (idx_key_t *)(reply + sizeof(occ_time_t) + sizeof(int));
+                    for(int i = 0; i < write_set_peer.size(); i++){
+                        k_pos[i] = write_set_peer[i];
+                    }
+
+                    if (send_i(mach_i, OCC_SEND_TRANS_INFO, reply, reply_sz, conn_socket) < 0) {
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
+                    }
+
+                    end_loop = true;
                     break;
                 }
 
-                case TS_RECV_COMPARE_AND_SWAP: {
+                case OCC_SEND_STORE_TXN_INFO: {
+                    assert(mach_i == this->server_id);
+                    assert((msg_sz - sizeof(occ_time_t)) % sizeof(idx_key_t) == 0);
 
+                    occ_time_t read_time = *((occ_time_t*) request_i);
+                    idx_key_t *all_keys = (idx_key_t*)(request_i + sizeof(occ_time_t));
+                    int all_keys_sz = (msg_sz - sizeof(occ_time_t)) / sizeof(idx_key_t);
+
+                    auto txn_buf = (OccTxnEntry*)OCC_TXN_BUF(server_id, global_buf[server_id], this->buf_sz);
+
+                    auto key_idx = (occ_idx_num_t *)OCC_KEY_IDX(server_id, global_buf[server_id], buf_sz);
+                    txn_buf[read_time].end_time = -1;
+                    txn_buf[read_time].abort = OCC_TXN_RUNNING;
+                    txn_buf[read_time].write_begin_ptr = *key_idx;
+
+                    auto key_buf = (OccKeyEntry*)OCC_KEY_BUF(server_id, global_buf[server_id], buf_sz);
+                    for(int i = 0; i < all_keys_sz; i++){
+                        key_buf[*key_idx].key = all_keys[i];
+                        (*key_idx) ++;
+                    }
+
+                    txn_buf[read_time].write_end_ptr = *key_idx;
+
+                    int reply_sz = 1;
+                    char* reply = new char;
+                    if (send_i(mach_i, OCC_SEND_STORE_TXN_INFO, reply, reply_sz, conn_socket) < 0) {
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
+                        assert(false);
+                    }
+
+                    end_loop = true;
                     break;
                 }
 
-                case TS_RECV_FETCH_AND_ADD: {
+                case OCC_SEND_UPDATE_TXN_INFO: {
+                    int correct_sz = sizeof(occ_time_t) + sizeof(occ_time_t) + sizeof(int);
+                    assert(mach_i == this->server_id);
+                    assert(msg_sz == correct_sz);
 
+                    occ_time_t read_time = *((occ_time_t*) request_i);
+                    occ_time_t end_time = *((occ_time_t*) (request_i + sizeof(occ_time_t)));
+                    int abort = *((occ_time_t*) (request_i + sizeof(occ_time_t) * 2));
+
+                    auto txn_buf = (OccTxnEntry*)OCC_TXN_BUF(server_id, global_buf[server_id], buf_sz);
+                    txn_buf[read_time].end_time = end_time;
+                    txn_buf[read_time].abort = abort;
+
+                    int reply_sz = 0;
+                    char* reply = new char;
+                    if (send_i(mach_i, OCC_SEND_UPDATE_TXN_INFO, reply, reply_sz, conn_socket) < 0) {
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
+                    }
+
+                    end_loop = true;
                     break;
                 }
 
-                case TS_RECV_CLOSE: {
+                case OCC_SEND_GET_ENTRY: {
+                    int correct_sz = sizeof(idx_key_t);
+                    assert(msg_sz == correct_sz);
+
+                    idx_key_t key = *((idx_key_t *) request_i);
+
+                    auto data_buf = (OccDataEntry*)OCC_DATA_BUF(server_id, global_buf[server_id], buf_sz);
+
+                    int reply_sz = sizeof(struct OccDataEntry);
+                    char* reply = new char[reply_sz];
+
+                    auto v = data_buf[key % MAX_DATA_PER_MACH].value;
+                    memcpy(reply, &(data_buf[key % MAX_DATA_PER_MACH]), sizeof(struct OccDataEntry));
+
+                    if (send_i(mach_i, OCC_SEND_GET_ENTRY, reply, reply_sz, conn_socket) < 0) {
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
+                    }
+
+                    end_loop = true;
+                    break;
+
+                }
+
+                case OCC_SEND_WRITE_ENTRY: {
+                    int correct_sz = sizeof(idx_key_t) + sizeof(idx_value_t);
+                    assert(msg_sz == correct_sz);
+
+                    idx_key_t key = *((idx_key_t *) request_i);
+                    idx_value_t value = *((idx_value_t *) (request_i + sizeof(idx_key_t)));
+
+                    auto data_buf = (OccDataEntry*)OCC_DATA_BUF(server_id, global_buf[server_id], buf_sz);
+                    data_buf[key % MAX_DATA_PER_MACH].value = value;
+
+                    int reply_sz = 0;
+                    char* reply = new char;
+
+                    if (send_i(mach_i, OCC_SEND_WRITE_ENTRY, reply, reply_sz, conn_socket) < 0) {
+                        printf("meta_thread: send_i error %s\n", strerror(errno));
+                    }
+
                     end_loop = true;
                     break;
                 }
 
                 default: {
-
+                    assert(false);
                     break;
                 }
 
             }
             if(end_loop)break;
         }
-//        Transaction* transaction = getTransactionFromBuffer(request_i, msg_sz);
-//        this->handle(transaction);
     }
 }
+

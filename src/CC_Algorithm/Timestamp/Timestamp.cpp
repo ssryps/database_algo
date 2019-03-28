@@ -248,7 +248,6 @@ bool TimestampServer::pthread_fetch_and_add(int mach_id, int type, idx_key_t key
     switch (type) {
         case TS_FEACH_AND_ADD_TIMESTAMP: {
             std::atomic<int> *cur = this->timestamp_generator;
-
             int oldValue, newValue;
             do {
                 oldValue = cur->load(std::memory_order_relaxed);
@@ -376,6 +375,7 @@ bool TimestampServer::init(int id, char **data_buf, int sz, std::atomic<int> *ge
     this->global_buf = data_buf;
     this->buf_sz = sz;
     this->timestamp_generator = generator;
+
     #ifdef TWO_SIDE
         assert(sz  > sizeof(TimestampEntry) * MAX_DATA_PER_MACH);
         return true;

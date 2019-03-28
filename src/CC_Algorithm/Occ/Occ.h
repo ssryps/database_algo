@@ -37,6 +37,12 @@
 #define OCC_SEND_VALI_TIMESTAMP 1
 #define OCC_SEND_CHECK_TRANS 2
 
+#define OCC_SEND_TRANS_INFO 3
+#define OCC_SEND_STORE_TXN_INFO 4
+#define OCC_SEND_UPDATE_TXN_INFO 5
+#define OCC_SEND_GET_ENTRY 6
+#define OCC_SEND_WRITE_ENTRY 7
+#define OCC_SEND_TXN 8
 
 #define OCC_READ_PHASE 0
 #define OCC_VAL_PHASE 1
@@ -238,10 +244,12 @@ public:
 
     static uint16_t get_socket(int id, Socket_Type type );
 
-private:
-    bool get_entry(idx_key_t key, OccDataEntry *value, comm_identifer ident);
+    TransactionResult send_transaction_to_server(Transaction* transaction);
 
-    bool write_entry(idx_key_t key, idx_value_t value, comm_identifer ident);
+private:
+    bool get_entry(idx_key_t key, OccDataEntry *value);
+
+    bool write_entry(idx_key_t key, idx_value_t value);
 
     bool get_timestamp(occ_time_t *value);
 
@@ -259,11 +267,17 @@ private:
 
     bool update_transaction_info(occ_time_t read_time, occ_time_t end_time, int abort);
 
+
+    // two sides functions
     bool msg_loop();
 
     bool setup_meta_server();
 
-    static void* server_thread(void* buf);
+    static void* meta_thread(void *);
+
+    bool setup_txn_server();
+
+    static void* txn_thread(void *);
 
 };
 
@@ -273,6 +287,7 @@ struct ServerInitInfo {
     int buf_sz;
     OccServer* this_ptr;
 };
+
 
 
 

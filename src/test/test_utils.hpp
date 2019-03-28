@@ -13,11 +13,13 @@ const int VALUE_RANGE = 5;
 int benchmark_flag = 0;
 #define RAMDOM_BENCHMARK 0
 #define SELF_MADE_BENCHMARK 1
+#define SMALL_BANK_BENCHMARK 2
+
 
 Command generateRandomCommand();
-void self_made_benchmark(Transaction* transaction);
+void self_made_benchmark(Transaction *transaction);
 void random_benchmark(Transaction *transaction);
-
+void smallbank_benchmark(Transaction *transaction);
 
 Transaction* generataTransaction(int id) {
     Transaction *transaction = new Transaction;
@@ -30,6 +32,11 @@ Transaction* generataTransaction(int id) {
 
         case SELF_MADE_BENCHMARK: {
             self_made_benchmark(transaction);
+            break;
+        }
+
+        case SMALL_BANK_BENCHMARK: {
+
             break;
         }
 
@@ -144,8 +151,8 @@ void random_benchmark(Transaction *transaction){
 
     char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
     memset(output_buf, 0, COMMMAND_PER_TRANSACTION * 100 * sizeof(char));
-    int offset = 0;
 
+    int offset = 0;
     for (int i = 0; i < COMMMAND_PER_TRANSACTION; i++) {
         Command command = generateRandomCommand();
         transaction->commands.push_back(command);
@@ -155,6 +162,10 @@ void random_benchmark(Transaction *transaction){
     }
 
     printf(output_buf);
+}
+
+void smallbank_benchmark(Transaction *transaction){
+
 }
 
 
@@ -170,6 +181,10 @@ Command generateRandomCommand(){
     command.read_result_index_2 = -1;
     return command;
 }
+
+
+
+
 
 char* putBuffer(char* des, char* src, size_t sz){
     assert(sz > 0);
@@ -191,12 +206,12 @@ char* getBuffer(char* des, char* src, size_t sz){
 size_t putTransactionToBuffer(Transaction* transaction, char* buf){
     char* start = buf;
     for(auto command: transaction->commands) {
-        start = putBuffer(start, reinterpret_cast<char*>(&(command.operation)), sizeof(command.operation));
-        start = putBuffer(start, reinterpret_cast<char*>(&(command.key)), sizeof(command.key));
-        start = putBuffer(start, reinterpret_cast<char*>(&(command.imme_1)), sizeof(command.imme_1));
-        start = putBuffer(start, reinterpret_cast<char*>(&(command.imme_2)), sizeof(command.imme_2));
-        start = putBuffer(start, reinterpret_cast<char*>(&(command.read_result_index_1)), sizeof(command.read_result_index_1));
-        start = putBuffer(start, reinterpret_cast<char*>(&(command.read_result_index_2)), sizeof(command.read_result_index_2));
+        start = putBuffer(start, (char*)(&(command.operation)), sizeof(command.operation));
+        start = putBuffer(start, (char*)(&(command.key)), sizeof(command.key));
+        start = putBuffer(start, (char*)(&(command.imme_1)), sizeof(command.imme_1));
+        start = putBuffer(start, (char*)(&(command.imme_2)), sizeof(command.imme_2));
+        start = putBuffer(start, (char*)(&(command.read_result_index_1)), sizeof(command.read_result_index_1));
+        start = putBuffer(start, (char*)(&(command.read_result_index_2)), sizeof(command.read_result_index_2));
         start = putBuffer(start, "\n", 1);
     }
     return start - buf;
@@ -207,12 +222,12 @@ Transaction* getTransactionFromBuffer(char* buf, size_t length){
     char* start = buf;
     while(true){
         Command *command = new Command;
-        start = getBuffer(reinterpret_cast<char*>(&(command->operation)), start, sizeof(command->operation));
-        start = getBuffer(reinterpret_cast<char*>(&(command->key)), start, sizeof(command->key));
-        start = getBuffer(reinterpret_cast<char*>(&(command->imme_1)), start, sizeof(command->imme_1));
-        start = getBuffer(reinterpret_cast<char*>(&(command->imme_2)), start, sizeof(command->imme_2));
-        start = getBuffer(reinterpret_cast<char*>(&(command->read_result_index_1)), start, sizeof(command->read_result_index_1));
-        start = getBuffer(reinterpret_cast<char*>(&(command->read_result_index_2)), start, sizeof(command->read_result_index_2));
+        start = getBuffer((char*)(&(command->operation)), start, sizeof(command->operation));
+        start = getBuffer((char*)(&(command->key)), start, sizeof(command->key));
+        start = getBuffer((char*)(&(command->imme_1)), start, sizeof(command->imme_1));
+        start = getBuffer((char*)(&(command->imme_2)), start, sizeof(command->imme_2));
+        start = getBuffer((char*)(&(command->read_result_index_1)), start, sizeof(command->read_result_index_1));
+        start = getBuffer((char*)(&(command->read_result_index_2)), start, sizeof(command->read_result_index_2));
         char t;
         start = getBuffer(&t, start, 1);
         assert(t == '\n');

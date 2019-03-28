@@ -122,11 +122,18 @@ void* PthreadClient(void* args){
 
         case ALGO_OCC: {
             #ifdef TWO_SIDE
-                TimestampServer* server = new TimestampServer;
-                server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE,
-                             info->timestamp_generator);
+                OccServer* server = new OccServer;
+                server->init(info->id, info->server_buf, SERVER_DATA_BUF_SIZE);
                 Transaction *transaction = generataTransaction(info->id);
-                TransactionResult result = server->handle(transaction);
+
+                TransactionResult result;
+                while(true) {
+                    result = server->send_transaction_to_server(transaction);
+                    if(result.is_success){
+                        break;
+                    }
+                }
+
                 int offset = 0;
                 char* output_buf = new char[COMMMAND_PER_TRANSACTION * 100];
                 offset += sprintf(output_buf + offset, "thread %d's result: %s\n",info->id, result.is_success? "success": "abort");
@@ -219,7 +226,7 @@ void PthreadTest(int argv, char* args[], CC_ALGO algo_name){
         }
         for(int i = 0; i < CLIENT_THREAD_NUM; i++){
             client_info[i].server_type = ALGO_OCC;
-            client_info[i].id = i;
+            client_info[i].id = ~i;
             client_info[i].server_buf = global_buf;
         }
     } else if(algo_name == ALGO_MVCC) {
