@@ -282,6 +282,12 @@ int TimestampServer::listen_socket(comm_identifer *ident){
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(get_operation_socket(this->server_id));
+
+    const int trueFlag = 1;
+    if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &trueFlag, sizeof(int)) < 0)
+        printf("Failure");
+
+
     if(bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1){
         printf("bind socket error: %s(errno: %d)\n",strerror(errno),errno);
         return 0;
@@ -620,7 +626,8 @@ bool TimestampServer::rollback(Transaction *transaction, int lastpos, std::vecto
             }
 
             case ALGO_ADD:
-            case ALGO_SUB: {
+            case ALGO_SUB:
+            case ALGO_TIMES:{
 
                 break;
             }
@@ -674,12 +681,12 @@ bool TimestampServer::rollback(Transaction *transaction, int lastpos, std::vecto
 
 
 
-TransactionResult TimestampServer::handle(Transaction* transaction) {
-    TransactionResult result;
+TransactionResult* TimestampServer::handle(Transaction *transaction) {
+    TransactionResult *txn_rst = new TransactionResult;
 
     if(!checkGrammar(transaction)){
-        result.is_success = false;
-        return result;
+        txn_rst->is_success = false;
+        return txn_rst;
     }
 
     idx_value_t cur_timestamp;
@@ -716,7 +723,7 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
                 } else {
                     rollback_value_list[i] = old_entry.value;
                     rollback_wtime_list[i] = old_entry.lastWrite;
-                    result.results.push_back(r);
+                    txn_rst->results.push_back(r);
                     write_entry(command.key, r, old_entry.lastRead, cur_timestamp, ident);
                 }
 
@@ -735,7 +742,7 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
                     abort = true;
                 } else {
                     temp_result[i] = old_entry.value;
-                    result.results.push_back(old_entry.value);
+                    txn_rst->results.push_back(old_entry.value);
                     write_entry(command.key, old_entry.value, cur_timestamp, old_entry.lastWrite, ident);
                 }
 
@@ -744,10 +751,11 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
             }
 
             case ALGO_ADD:
-            case ALGO_SUB: {
+            case ALGO_SUB:
+            case ALGO_TIMES:{
                 idx_value_t r = value_from_command(command, temp_result);
                 temp_result[i] = r;
-                result.results.push_back(r);
+                txn_rst->results.push_back(r);
                 break;
             }
         }
@@ -755,12 +763,12 @@ TransactionResult TimestampServer::handle(Transaction* transaction) {
 
     if(abort){
         rollback(transaction, i, rollback_value_list, rollback_wtime_list);
-        result.is_success = false;
-        return result;
+        txn_rst->is_success = false;
+        return txn_rst;
     }
 
-    result.is_success = true;
-    return result;
+    txn_rst->is_success = true;
+    return txn_rst;
 
 }
 

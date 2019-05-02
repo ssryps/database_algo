@@ -14,7 +14,7 @@
 class CCServer {
 public:
 //    CCServer(){}
-    virtual TransactionResult handle(Transaction* transaction) = 0;
+    virtual TransactionResult * handle(Transaction *transaction) = 0;
     virtual int run() = 0;
 
 
@@ -50,8 +50,10 @@ protected:
                     if(!r_1)return false;
                     break;
                 }
+
                 case ALGO_SUB:
-                case ALGO_ADD: {
+                case ALGO_ADD:
+                case ALGO_TIMES:{
                     bool r_1 = (command.read_result_index_1 < 0 || (command.read_result_index_1 < i && vali[command.read_result_index_1] == 1)),
                          r_2 = (command.read_result_index_2 < 0 || (command.read_result_index_2 < i && vali[command.read_result_index_2] == 1));
                     if(!r_1 || !r_2)return false;

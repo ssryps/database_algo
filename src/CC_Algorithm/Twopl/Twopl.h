@@ -47,7 +47,7 @@ public:
     bool init(int id, char** data_buf, int sz);
 #endif
 
-    TransactionResult handle(Transaction* transaction);
+    TransactionResult * handle(Transaction *transaction);
     int run();
 private:
     // server metadata

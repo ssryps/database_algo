@@ -76,7 +76,7 @@ class TimestampServer : public CCServer {
 
 public:
     TimestampServer();
-    TransactionResult handle(Transaction* transaction);
+    TransactionResult * handle(Transaction *transaction);
     int run();
 
 #ifdef RDMA

@@ -190,7 +190,7 @@ const int OCC_SERVER_TXN_BUF_OFFSET   = OCC_SERVER_TXN_IDX_OFFSET   + sizeof(occ
 class OccServer : public CCServer{
 public:
     OccServer();
-    TransactionResult handle(Transaction* transaction);
+    TransactionResult * handle(Transaction *transaction);
     int run();
 
 #ifdef RDMA
@@ -244,7 +244,7 @@ public:
 
     static uint16_t get_socket(int id, Socket_Type type );
 
-    TransactionResult send_transaction_to_server(Transaction* transaction);
+    TransactionResult* send_transaction_to_server(Transaction* transaction);
 
 private:
     bool get_entry(idx_key_t key, OccDataEntry *value);

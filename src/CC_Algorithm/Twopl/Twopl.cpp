@@ -203,14 +203,14 @@ bool TwoplServer::init(int id, char **buf, int sz) {
 }
 #endif
 
-TransactionResult TwoplServer::handle(Transaction* transaction) {
+TransactionResult * TwoplServer::handle(Transaction *transaction) {
 
-    TransactionResult results;
+    TransactionResult *txn_rst = new TransactionResult;
     std::set<idx_key_t > keys;
 
     if(!checkGrammar(transaction)){
-        results.is_success = false;
-        return results;
+        txn_rst->is_success = false;
+        return txn_rst;
     }
 
     for (Command command : transaction->commands) { keys.insert(command.key); }
@@ -225,20 +225,21 @@ TransactionResult TwoplServer::handle(Transaction* transaction) {
                 idx_value_t r = value_from_command(command, temp_result);
                 entry->value = r;
                 put(command.key, entry);
-                results.results.push_back(r);
+                txn_rst->results.push_back(r);
                 break;
             }
             case ALGO_READ: {
                 get(command.key, entry);
                 temp_result[i] = entry->value;
-                results.results.push_back(entry->value);
+                txn_rst->results.push_back(entry->value);
                 break;
             }
             case ALGO_ADD:
-            case ALGO_SUB: {
+            case ALGO_SUB:
+            case ALGO_TIMES:{
                 idx_value_t r = value_from_command(command, temp_result);
                 temp_result[i] = r;
-                results.results.push_back(r);
+                txn_rst->results.push_back(r);
                 break;
             }
         }
@@ -246,9 +247,9 @@ TransactionResult TwoplServer::handle(Transaction* transaction) {
 
     for(auto i = keys.begin(); i != keys.end(); i++){ unlock(*i); }
 
-    results.is_success = true;
+    txn_rst->is_success = true;
 
-    return results;
+    return txn_rst;
 }
 
 int TwoplServer::run() {

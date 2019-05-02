@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(rdma_measure)
 
 set(CMAKE_CXX_FLAGS  "-w -std=c++11 -D_GNU_SOURCE")
@@ -35,18 +35,6 @@ add_executable(main
 		src/utils.cpp)
 target_link_libraries(main ${addition_lib})
 
-
-add_executable(ALGO_TEST
-		src/test/test_main.cpp
-		src/test/test_utils.hpp
-		src/CC_Algorithm/CCServer.hpp
-		src/CC_Algorithm/Twopl/Twopl.cpp
-		src/CC_Algorithm/Timestamp/Timestamp.cpp
-		src/CC_Algorithm/Occ/Occ.cpp
-		src/utils.cpp)
-target_link_libraries(ALGO_TEST GTest::GTest GTest::Main)
-
-
-add_compile_definitions(DEBUG)
+#add_compile_definitions(DEBUG)
 
 add_compile_definitions(TWO_SIDE)

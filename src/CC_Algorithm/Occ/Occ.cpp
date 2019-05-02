@@ -354,7 +354,11 @@ int OccServer::listen_socket(int my_id, Socket_Type type, comm_identifer *ident)
         servaddr.sin_family = AF_INET;
         servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
         servaddr.sin_port = htons(get_socket(my_id, type));
-//        std::cout << "sin port" << get_socket(my_id, type) << std::endl;
+
+        const int trueFlag = 1;
+        if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &trueFlag, sizeof(int)) < 0)
+            printf("Failure");
+
 
         if(bind(listenfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1){
             printf("bind socket error: %s(errno: %d)\n",strerror(errno),errno);
@@ -367,6 +371,7 @@ int OccServer::listen_socket(int my_id, Socket_Type type, comm_identifer *ident)
             return 0;
         }
         *ident = listenfd;
+
         return 0;
     #endif
 #endif
@@ -391,7 +396,6 @@ comm_identifer OccServer::start_socket(int mach_id, Socket_Type type){
         servaddr.sin_port = htons(get_socket(mach_id, type));
         if(inet_pton(AF_INET, "127.0.0.1", &servaddr.sin_addr) <= 0){
             assert(false);
-            printf("inet_pton error for %s\n", "127.0.0.1");
             return false;
         }
 
@@ -941,7 +945,7 @@ bool OccServer::update_transaction_info(occ_time_t read_time, occ_time_t end_tim
 }
 
 
-TransactionResult OccServer::send_transaction_to_server(Transaction* transaction){
+TransactionResult* OccServer::send_transaction_to_server(Transaction* transaction){
     assert(this->server_id < 0);
     int des_server = ~(this->server_id);
 
@@ -965,12 +969,12 @@ TransactionResult OccServer::send_transaction_to_server(Transaction* transaction
     }
 
     assert(type_id == OCC_SEND_TXN);
-    TransactionResult result;
-    result.is_success = *(bool*)buf;
+    TransactionResult* result = new TransactionResult;
+    result->is_success = *(bool*)buf;
     int r_sz = (sz - sizeof(bool)) / sizeof(idx_value_t);
     for(int i = 0; i < r_sz; i++){
         idx_value_t *pos = (idx_value_t*)(buf + sizeof(bool));
-        result.results.push_back(pos[i]);
+        result->results.push_back(pos[i]);
     }
 
     delete(buf);
@@ -981,25 +985,25 @@ TransactionResult OccServer::send_transaction_to_server(Transaction* transaction
 
 
 
-TransactionResult OccServer::handle(Transaction* transaction){
-    TransactionResult result;
+TransactionResult * OccServer::handle(Transaction *transaction){
+    TransactionResult *txn_rst = new TransactionResult;
     if(!checkGrammar(transaction)){
-        result.is_success = false;
-        return result;
+        txn_rst->is_success = false;
+        return txn_rst;
     }
     std::unordered_map<idx_key_t, idx_value_t> local_db;
     std::unordered_set<idx_key_t> read_set, write_set;
 
     idx_value_t *temp_result = new idx_value_t[transaction->commands.size()];
 
-    // read and compute intermediate result
+    // read and compute intermediate txn_rst
     occ_time_t read_time;
     bool ok = get_timestamp(&read_time);
     if(!ok) {
         printf("can't get read timestamp\n");
         exit(1);
     } else {
-        printf("%d read time %d\n", this->server_id, read_time);
+//        printf("%d read time %d\n", this->server_id, read_time);
     }
 
     for(int i = 0; i < transaction->commands.size(); i ++) {
@@ -1009,7 +1013,7 @@ TransactionResult OccServer::handle(Transaction* transaction){
                 idx_value_t value = value_from_command(command, temp_result);
                 local_db[command.key] = value;
 
-                result.results.push_back(value);
+                txn_rst->results.push_back(value);
                 write_set.insert(command.key);
 
                 break;
@@ -1030,16 +1034,17 @@ TransactionResult OccServer::handle(Transaction* transaction){
 
                 read_set.insert(command.key);
                 temp_result[i] = value;
-                result.results.push_back(value);
+                txn_rst->results.push_back(value);
 
                 break;
             }
 
             case ALGO_ADD:
-            case ALGO_SUB: {
+            case ALGO_SUB:
+            case ALGO_TIMES: {
                 idx_value_t r = value_from_command(command, temp_result);
                 temp_result[i] = r;
-                result.results.push_back(r);
+                txn_rst->results.push_back(r);
                 break;
             }
         }
@@ -1054,7 +1059,7 @@ TransactionResult OccServer::handle(Transaction* transaction){
         printf("can't get validation timestamp\n");
         exit(1);
     } else {
-        printf("%d validation time %d\n", this->server_id, validation_time);
+//        printf("%d validation time %d\n", this->server_id, validation_time);
     }
 
 
@@ -1090,13 +1095,11 @@ TransactionResult OccServer::handle(Transaction* transaction){
 
         if(end_time_peer < validation_time){
             if(common_elements(write_set_peer, read_set)){
-                printf("handle: conflict 1\n");
                 abort = true;
                 break;
             }
         } else {
             if(common_elements(write_set_peer, read_set) || common_elements(write_set_peer, write_set)){
-                printf("handle: conflict 2\n");
                 abort = true;
                 break;
             }
@@ -1105,9 +1108,9 @@ TransactionResult OccServer::handle(Transaction* transaction){
 
     // write phase
     if(abort) {
-        result.is_success = false;
+        txn_rst->is_success = false;
         update_transaction_info(read_time, -1, OCC_TXN_ABORT);
-        return result;
+        return txn_rst;
     }
 
 
@@ -1123,13 +1126,13 @@ TransactionResult OccServer::handle(Transaction* transaction){
         printf("can't get end timestamp\n");
         exit(1);
     } else {
-        printf("%d end time %d\n", this->server_id, end_time);
+//        printf("%d end time %d\n", this->server_id, end_time);
     }
 
     update_transaction_info(read_time, end_time, OCC_TXN_SUCCESS);
 
-    result.is_success = true;
-    return result;
+    txn_rst->is_success = true;
+    return txn_rst;
 }
 
 
@@ -1392,15 +1395,15 @@ void* OccServer::txn_thread(void *buf) {
                         n_txn.commands.push_back(n_cmd);
                     }
 
-                    TransactionResult result = init_info->this_ptr->handle(&n_txn);
+                    TransactionResult* result = init_info->this_ptr->handle(&n_txn);
 
-                    int reply_sz = sizeof(result.is_success) + result.results.size() * sizeof(idx_value_t);
+                    int reply_sz = sizeof(result->is_success) + result->results.size() * sizeof(idx_value_t);
                     char* reply = new char[reply_sz];
 
-                    *((bool*)reply) = result.is_success;
-                    for(int i = 0; i < result.results.size(); i++){
+                    *((bool*)reply) = result->is_success;
+                    for(int i = 0; i < result->results.size(); i++){
                         idx_value_t *pos = (idx_value_t*)(reply + sizeof(bool));
-                        pos[i] = result.results[i];
+                        pos[i] = result->results[i];
                     }
 
 

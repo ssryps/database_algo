@@ -17,14 +17,15 @@
 enum RC {OK, ABORT, COMMIT, WAIT, ERROR};
 
 enum CC_ALGO {ALGO_TWOPL, ALGO_OCC, ALGO_MVCC, ALGO_TIMESTAMP};
+extern const char* cc_algo_name[];
 
-enum Operation {ALGO_READ, ALGO_WRITE, ALGO_ADD, ALGO_SUB};
+enum Operation {ALGO_READ, ALGO_WRITE, ALGO_ADD, ALGO_SUB, ALGO_TIMES};
 
 enum Socket_Type {MSG_SCK, META_SERVER_SCK, TXN_SCK };
 
-#define TXN_SCK_NUM 9000
-#define MSG_SCK_NUM 9001
-#define META_SERVER_SCK_NUM 9002
+#define TXN_SCK_NUM 29000
+#define MSG_SCK_NUM 29001
+#define META_SERVER_SCK_NUM 29002
 
 
 struct Command{
@@ -57,10 +58,15 @@ int get_machine_index(idx_key_t key);
 
 const int MAX_DATA_PER_MACH = 1000000;
 
-const int SERVER_THREAD_NUM = 4;
-const int CLIENT_THREAD_NUM = 2;
-const int SERVER_DATA_BUF_SIZE = 1024 * 1024 * 100;
-const int MEG_BUF_SIZE = 1024 * 10;
+#define DEFAULT_SERVER_NUM 4
+#define DEFAULT_CLIENT_NUM 2
+
+extern int server_thread_num;
+extern int client_thread_num;
+
+
+#define SERVER_DATA_BUF_SIZE  1024 * 1024 * 100
+#define MEG_BUF_SIZE  1024 * 10
 
 
 #endif //RDMA_MEASURE_UTILS_H
